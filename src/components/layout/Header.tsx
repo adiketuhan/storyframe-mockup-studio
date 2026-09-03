@@ -1,13 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useStory } from '../../context/StoryContext';
 import type { PlatformType } from '../../types/story';
-import { Moon, Sun, RotateCcw, Layers, FileCode } from 'lucide-react';
+import { Moon, Sun, RotateCcw, Layers, FileCode, Save, FolderOpen, CheckCircle2, ChevronDown } from 'lucide-react';
 import { TwitterIcon, InstagramIcon, WhatsAppIcon } from '../common/BrandIcons';
 import { ScriptParserModal } from '../parser/ScriptParserModal';
 
 export const Header: React.FC = () => {
-  const { projectTitle, setProjectTitle, activeSlide, updateActiveSlide, resetProject, slides, currentSlideIndex } = useStory();
+  const {
+    projectTitle,
+    setProjectTitle,
+    activeSlide,
+    updateActiveSlide,
+    resetProject,
+    slides,
+    currentSlideIndex,
+    lastSavedTime,
+    exportProjectAsJson,
+    importProjectFromJson,
+  } = useStory();
+
   const [showScriptModal, setShowScriptModal] = useState<boolean>(false);
+  const [showProjectMenu, setShowProjectMenu] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handlePlatformChange = (platform: PlatformType) => {
     updateActiveSlide({ platform });
@@ -18,6 +32,13 @@ export const Header: React.FC = () => {
       ...slide,
       themeMode: slide.themeMode === 'dark' ? 'light' : 'dark',
     }));
+  };
+
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      await importProjectFromJson(e.target.files[0]);
+      setShowProjectMenu(false);
+    }
   };
 
   return (
@@ -38,12 +59,22 @@ export const Header: React.FC = () => {
                       Studio 3:4
                     </span>
                   </h1>
+
+                  {/* Auto-Save live indicator */}
+                  <span
+                    className="hidden sm:inline-flex items-center space-x-1 text-[10.5px] font-medium text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-full"
+                    title={`Auto-save aktif. Terakhir disimpan: ${lastSavedTime}`}
+                  >
+                    <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                    <span>Tersimpan {lastSavedTime}</span>
+                  </span>
                 </div>
+
                 <input
                   type="text"
                   value={projectTitle}
                   onChange={(e) => setProjectTitle(e.target.value)}
-                  className="text-xs text-slate-400 bg-transparent hover:text-slate-200 focus:text-slate-100 focus:outline-none truncate max-w-[180px] sm:max-w-xs"
+                  className="text-xs text-slate-400 bg-transparent hover:text-slate-200 focus:text-slate-100 focus:outline-none truncate max-w-[180px] sm:max-w-xs font-medium"
                   placeholder="Judul Proyek Cerita..."
                 />
               </div>
@@ -61,8 +92,17 @@ export const Header: React.FC = () => {
                 <span>Naskah</span>
               </button>
 
+              <button
+                type="button"
+                onClick={exportProjectAsJson}
+                className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white"
+                title="Simpan File Cadangan (.json)"
+              >
+                <Save className="w-4 h-4 text-emerald-400" />
+              </button>
+
               <span className="text-xs text-slate-400 font-medium px-2 py-1 bg-slate-800 rounded-lg">
-                Slide {currentSlideIndex + 1}/{slides.length}
+                {currentSlideIndex + 1}/{slides.length}
               </span>
 
               <button
@@ -151,8 +191,65 @@ export const Header: React.FC = () => {
             </button>
           </div>
 
-          {/* Right Controls: Regex Script Studio Button, Theme & Reset */}
+          {/* Right Controls: Regex Script Studio Button, Project Backup, Theme & Reset */}
           <div className="hidden md:flex items-center space-x-2">
+            {/* Project Backup & Restore Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowProjectMenu(!showProjectMenu)}
+                className="py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold flex items-center space-x-1.5 border border-slate-700 transition-colors"
+              >
+                <Save className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Simpan/Buka</span>
+                <ChevronDown className="w-3 h-3 text-slate-400" />
+              </button>
+
+              {showProjectMenu && (
+                <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 z-50 space-y-1">
+                  <div className="px-2.5 py-1.5 border-b border-slate-800">
+                    <p className="text-[11px] font-semibold text-slate-300">Cadangan Proyek Cerita</p>
+                    <p className="text-[10px] text-slate-500">Mencegah data hilang saat ganti browser/refresh</p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      exportProjectAsJson();
+                      setShowProjectMenu(false);
+                    }}
+                    className="w-full text-left px-2.5 py-2 rounded-xl text-xs text-slate-200 hover:bg-slate-800 flex items-center space-x-2 transition-colors"
+                  >
+                    <Save className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <div>
+                      <div className="font-medium">Download Backup (.json)</div>
+                      <div className="text-[10px] text-slate-400">Simpan salinan proyek ke file</div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full text-left px-2.5 py-2 rounded-xl text-xs text-slate-200 hover:bg-slate-800 flex items-center space-x-2 transition-colors"
+                  >
+                    <FolderOpen className="w-4 h-4 text-indigo-400 shrink-0" />
+                    <div>
+                      <div className="font-medium">Buka File Proyek (.json)</div>
+                      <div className="text-[10px] text-slate-400">Muat kembali proyek tersimpan</div>
+                    </div>
+                  </button>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".json"
+                    onChange={handleFileImport}
+                    className="hidden"
+                  />
+                </div>
+              )}
+            </div>
+
             {/* Script-to-Story Studio button */}
             <button
               type="button"

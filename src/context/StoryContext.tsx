@@ -6,6 +6,7 @@ import { incrementTimeString } from '../utils/timeUtils';
 import { parseScriptToStory } from '../utils/scriptParser';
 
 const STORAGE_KEY = 'storyframe_mockup_project_v3';
+const BACKUP_STORAGE_KEY = 'storyframe_mockup_backup';
 
 // Default Story Characters
 const createInitialCharacters = (): Character[] => [
@@ -70,24 +71,24 @@ const createInitialCharacters = (): Character[] => [
 const createInitialSlides = (): Slide[] => [
   {
     id: 'slide-1',
-    title: 'Pesan Dari Nomor Tak Dikenal',
+    title: 'Slide 1 - Pesan Misterius',
     platform: 'whatsapp',
     themeMode: 'dark',
     statusBar: {
       show: true,
       time: '23:45',
-      batteryLevel: 28,
+      batteryLevel: 24,
+      isCharging: false,
       signalType: '5G',
       carrier: 'Telkomsel',
     },
     notification: {
       enabled: false,
       platform: 'whatsapp',
-      title: '+62 812-9900-XXXX',
-      message: 'Kamu tidak bisa lari lagi.',
+      title: 'Pesan Baru',
+      message: '...',
       time: 'Baru saja',
-      avatar: PRESET_AVATARS.mysteriousMan,
-      characterId: 'char-stranger',
+      avatar: PRESET_AVATARS.unknownContact,
     },
     whatsapp: {
       contactName: '+62 812-9900-XXXX',
@@ -103,7 +104,6 @@ const createInitialSlides = (): Slide[] => [
           text: 'Pesan ini telah dihapus',
           time: '23:43',
           status: 'read',
-          characterId: 'char-stranger',
         },
         {
           id: 'm2',
@@ -112,33 +112,55 @@ const createInitialSlides = (): Slide[] => [
           text: 'Jangan buka pintu belakang malam ini, Rian.',
           time: '23:44',
           status: 'read',
-          characterId: 'char-stranger',
         },
         {
           id: 'm3',
           sender: 'them',
           type: 'text',
           text: 'Aku tahu kamu sedang sendirian di lantai dua.',
+          time: '23:44',
+          status: 'read',
+        },
+        {
+          id: 'm4',
+          sender: 'me',
+          type: 'text',
+          text: 'SIAPA KAMU?! Jangan main-main ya!',
           time: '23:45',
           status: 'read',
-          characterId: 'char-stranger',
+        },
+        {
+          id: 'm5',
+          sender: 'me',
+          type: 'voice',
+          text: 'Voice message',
+          voiceDuration: '0:14',
+          time: '23:45',
+          status: 'read',
         },
       ],
     },
     instagramDm: {
-      contactName: 'Sarah Amanda',
+      contactName: 'sarahamanda',
       handle: 'sarahamanda',
       avatar: PRESET_AVATARS.girlFriend,
       verified: false,
-      activeStatus: 'Aktif 5 mnt lalu',
+      activeStatus: 'Aktif 15 mnt lalu',
       characterId: 'char-sarah',
       messages: [
         {
-          id: 'ig-1',
+          id: 'ig1',
           sender: 'them',
           type: 'text',
-          text: 'Rian, kamu masih di villa itu?',
-          time: '23:40',
+          text: 'Rian, kamu udah sampai di villa tua itu?',
+          time: '23:30',
+        },
+        {
+          id: 'ig2',
+          sender: 'me',
+          type: 'text',
+          text: 'Udah, tapi suasananya aneh banget Sar...',
+          time: '23:32',
         },
       ],
     },
@@ -149,13 +171,13 @@ const createInitialSlides = (): Slide[] => [
       verified: true,
       verifiedType: 'blue',
       characterId: 'char-news',
-      text: '⚠️ PERINGATAN DARURAT: Sosok mencurigakan dilaporkan berkeliaran di sekitar Kompleks Villa Pine Hills pukul 23:30 WIB. Warga diimbau mengunci seluruh akses pintu dan jendela.',
+      text: '⚠️ PERINGATAN DARURAT: Sosok mencurigakan dilaporkan berkeliaran di sekitar Kompleks Villa Pine Hills pukul 23:30 WIB. Warga dan pengunjung diimbau mengunci seluruh pintu dan jendela.',
       mediaUrl: PRESET_MEDIA.abandonedHouse,
       device: 'Twitter for iPhone',
-      timestamp: '11:38 PM · 24 Okt 2026',
+      timestamp: '11:48 PM · 24 Okt 2026',
       viewsCount: '48.2K',
       repostsCount: '1.4K',
-      quotesCount: '320',
+      quotesCount: '382',
       likesCount: '5.9K',
       bookmarksCount: '890',
     },
@@ -168,7 +190,7 @@ const createInitialSlides = (): Slide[] => [
       mediaUrl: PRESET_MEDIA.abandonedHouse,
       isLiked: true,
       likesCount: '1,420 suka',
-      caption: 'Katanya villa ini ada penjaganya... tapi kok sunyi banget ya? 🌲🏚️',
+      caption: 'Katanya villa ini ada penjaganya... tapi kok sunyi banget ya? 🌲🏚️ #pinehills #misteri #urbanlegend',
       timestamp: '3 JAM YANG LALU',
       commentCount: 'Lihat semua 42 komentar',
     },
@@ -178,39 +200,38 @@ const createInitialSlides = (): Slide[] => [
       avatar: PRESET_AVATARS.detective,
       verified: false,
       characterId: 'char-detective',
-      text: 'Ada rekaman CCTV janggal yang masuk dari villa nomor 4B malam ini. Gerbangnya terbuka sendiri.',
-      mediaUrl: PRESET_MEDIA.cctvEvidence,
-      timestamp: '10m',
-      likesCount: '348',
-      repliesCount: '52',
-      repostsCount: '18',
+      text: 'Ada laporan aneh dari kawasan Villa Pine Hills malam ini. CCTV gerbang utama mati mendadak sejak pukul 23:00. Jangan ke sana.',
+      timestamp: '15m',
+      likesCount: '450',
+      repliesCount: '38',
+      repostsCount: '24',
       hasReply: true,
       replyAuthorName: 'rian_aditya',
       replyAvatar: PRESET_AVATARS.mysteriousMan,
-      replyText: 'Tunggu... itu gerbang villa tempat aku menginap!',
+      replyText: 'Gua lagi di dalam villa ini sekarang...',
       replyTimestamp: '2m',
     },
   },
   {
     id: 'slide-2',
-    title: 'Bukti CCTV Misterius',
+    title: 'Slide 2 - Bukti CCTV',
     platform: 'whatsapp',
     themeMode: 'dark',
     statusBar: {
       show: true,
       time: '23:47',
-      batteryLevel: 26,
+      batteryLevel: 22,
+      isCharging: false,
       signalType: '5G',
       carrier: 'Telkomsel',
     },
     notification: {
       enabled: false,
-      platform: 'whatsapp',
-      title: 'Sarah',
-      message: 'Rian, angkat teleponku sekarang!',
-      time: '1m lalu',
+      platform: 'instagram',
+      title: 'sarahamanda',
+      message: 'Rian! Angkat telepon sekarang!!',
+      time: 'Baru saja',
       avatar: PRESET_AVATARS.girlFriend,
-      characterId: 'char-sarah',
     },
     whatsapp: {
       contactName: '+62 812-9900-XXXX',
@@ -220,62 +241,32 @@ const createInitialSlides = (): Slide[] => [
       characterId: 'char-stranger',
       messages: [
         {
-          id: 'm1',
-          sender: 'them',
-          type: 'text',
-          text: 'Aku tahu kamu sedang sendirian di lantai dua.',
-          time: '23:45',
-          status: 'read',
-          characterId: 'char-stranger',
-        },
-        {
-          id: 'm2',
-          sender: 'me',
-          type: 'text',
-          text: 'SIAPA KAMU?! Jangan main-main ya, aku panggil polisi sekarang!',
-          time: '23:46',
-          status: 'read',
-          characterId: 'char-rian',
-        },
-        {
-          id: 'm3',
-          sender: 'me',
-          type: 'voice',
-          text: 'Voice message',
-          time: '23:46',
-          status: 'read',
-          voiceDuration: '0:14',
-          isPlayed: true,
-          characterId: 'char-rian',
-        },
-        {
-          id: 'm4',
+          id: 'm2-1',
           sender: 'them',
           type: 'image',
-          text: 'Lihat ke arah kamera taman sekarang.',
+          text: 'Lihat siapa yang berdiri di luar jendela kamarmu.',
+          mediaUrl: PRESET_MEDIA.cctvEvidence,
+          time: '23:46',
+          status: 'read',
+        },
+        {
+          id: 'm2-2',
+          sender: 'me',
+          type: 'text',
+          text: 'ANJING LU SIAPA SEBENARNYA?!',
           time: '23:47',
           status: 'read',
-          mediaUrl: PRESET_MEDIA.cctvEvidence,
-          characterId: 'char-stranger',
         },
       ],
     },
     instagramDm: {
-      contactName: 'Sarah Amanda',
+      contactName: 'sarahamanda',
       handle: 'sarahamanda',
       avatar: PRESET_AVATARS.girlFriend,
       verified: false,
       activeStatus: 'Online',
       characterId: 'char-sarah',
-      messages: [
-        {
-          id: 'ig-1',
-          sender: 'them',
-          type: 'text',
-          text: 'Rian! Cepat kunci pintu!',
-          time: '23:46',
-        },
-      ],
+      messages: [],
     },
     twitter: {
       authorName: 'Metropolis News Radar',
@@ -283,16 +274,14 @@ const createInitialSlides = (): Slide[] => [
       avatar: PRESET_AVATARS.verifiedBrand,
       verified: true,
       verifiedType: 'blue',
-      characterId: 'char-news',
-      text: '⚠️ PERINGATAN DARURAT: Sosok mencurigakan dilaporkan berkeliaran di sekitar Kompleks Villa Pine Hills pukul 23:30 WIB.',
-      mediaUrl: PRESET_MEDIA.abandonedHouse,
+      text: 'Update...',
       device: 'Twitter for iPhone',
-      timestamp: '11:38 PM · 24 Okt 2026',
-      viewsCount: '54.2K',
-      repostsCount: '2.1K',
-      quotesCount: '410',
-      likesCount: '7.8K',
-      bookmarksCount: '1.1K',
+      timestamp: '11:49 PM · 24 Okt 2026',
+      viewsCount: '10K',
+      repostsCount: '200',
+      quotesCount: '40',
+      likesCount: '1.2K',
+      bookmarksCount: '100',
     },
     instagramFeed: {
       authorName: 'sarahamanda',
@@ -303,7 +292,7 @@ const createInitialSlides = (): Slide[] => [
       mediaUrl: PRESET_MEDIA.abandonedHouse,
       isLiked: true,
       likesCount: '1,420 suka',
-      caption: 'Katanya villa ini ada penjaganya... tapi kok sunyi banget ya? 🌲🏚️',
+      caption: 'Katanya villa ini ada penjaganya...',
       timestamp: '3 JAM YANG LALU',
     },
     threads: {
@@ -311,25 +300,24 @@ const createInitialSlides = (): Slide[] => [
       handle: 'detektif_jalanan',
       avatar: PRESET_AVATARS.detective,
       verified: false,
-      characterId: 'char-detective',
-      text: 'Ada rekaman CCTV janggal yang masuk dari villa nomor 4B malam ini. Gerbangnya terbuka sendiri.',
-      mediaUrl: PRESET_MEDIA.cctvEvidence,
-      timestamp: '12m',
-      likesCount: '490',
-      repliesCount: '68',
-      repostsCount: '30',
-      hasReply: true,
+      text: 'Update...',
+      timestamp: '10m',
+      likesCount: '100',
+      repliesCount: '10',
+      repostsCount: '5',
+      hasReply: false,
     },
   },
   {
     id: 'slide-3',
-    title: 'Suspense Banner Saat Buka Feed',
+    title: 'Slide 3 - Postingan Feed & Suspense Notif',
     platform: 'instagram-feed',
     themeMode: 'dark',
     statusBar: {
       show: true,
       time: '23:49',
-      batteryLevel: 24,
+      batteryLevel: 20,
+      isCharging: false,
       signalType: '5G',
       carrier: 'Telkomsel',
     },
@@ -337,44 +325,39 @@ const createInitialSlides = (): Slide[] => [
       enabled: true,
       platform: 'whatsapp',
       title: '+62 812-9900-XXXX',
-      message: 'Langkah kakiku sudah ada di tangga bawah.',
+      message: 'Langkah kakiku sudah ada di tangga lantai 2.',
       time: 'Baru saja',
-      avatar: PRESET_AVATARS.mysteriousMan,
-      characterId: 'char-stranger',
+      avatar: PRESET_AVATARS.unknownContact,
     },
     whatsapp: {
       contactName: '+62 812-9900-XXXX',
       avatar: PRESET_AVATARS.unknownContact,
       status: 'online',
       showCallButtons: true,
-      characterId: 'char-stranger',
       messages: [],
     },
     instagramDm: {
-      contactName: 'Sarah Amanda',
+      contactName: 'sarahamanda',
       handle: 'sarahamanda',
       avatar: PRESET_AVATARS.girlFriend,
       verified: false,
       activeStatus: 'Online',
-      characterId: 'char-sarah',
       messages: [],
     },
     twitter: {
-      authorName: 'Polres Metro Tanggap',
-      handle: 'HumasPolresMetro',
+      authorName: 'Metropolis News Radar',
+      handle: 'MetropolisRadar',
       avatar: PRESET_AVATARS.verifiedBrand,
       verified: true,
       verifiedType: 'blue',
-      characterId: 'char-news',
-      text: 'Tim patroli presisi sedang meluncur ke area Villa Pine Hills setelah menerima 3 panggilan darurat berturut-turut. Tetap berada di tempat aman.',
-      mediaUrl: PRESET_MEDIA.documentEvidence,
+      text: 'Update...',
       device: 'Twitter for iPhone',
-      timestamp: '11:48 PM · 24 Okt 2026',
-      viewsCount: '124.9K',
-      repostsCount: '8.4K',
-      quotesCount: '1.2K',
-      likesCount: '21.5K',
-      bookmarksCount: '3.4K',
+      timestamp: '11:49 PM · 24 Okt 2026',
+      viewsCount: '10K',
+      repostsCount: '200',
+      quotesCount: '40',
+      likesCount: '1.2K',
+      bookmarksCount: '100',
     },
     instagramFeed: {
       authorName: 'sarahamanda',
@@ -385,21 +368,20 @@ const createInitialSlides = (): Slide[] => [
       mediaUrl: PRESET_MEDIA.abandonedHouse,
       isLiked: true,
       likesCount: '1,420 suka',
-      caption: 'Katanya villa ini ada penjaganya... tapi kok sunyi banget ya?',
+      caption: 'Katanya villa ini ada penjaganya... tapi kok sunyi banget ya? 🌲🏚️ #pinehills #misteri #urbanlegend',
       timestamp: '3 JAM YANG LALU',
+      commentCount: 'Lihat semua 42 komentar',
     },
     threads: {
       authorName: 'detektif_jalanan',
       handle: 'detektif_jalanan',
       avatar: PRESET_AVATARS.detective,
       verified: false,
-      characterId: 'char-detective',
-      text: 'Petunjuk baru ditemukan terkait riwayat villa nomor 4B.',
-      mediaUrl: PRESET_MEDIA.documentEvidence,
-      timestamp: '2m',
-      likesCount: '890',
-      repliesCount: '112',
-      repostsCount: '45',
+      text: 'Update...',
+      timestamp: '10m',
+      likesCount: '100',
+      repliesCount: '10',
+      repostsCount: '5',
       hasReply: false,
     },
   },
@@ -409,6 +391,7 @@ const initialWatermark: PageWatermarkConfig = {
   show: true,
   format: 'title_and_page',
   useProjectTitle: true,
+  startPageNumber: 1,
   position: 'bottom_right',
   style: 'glass_dark',
 };
@@ -435,22 +418,37 @@ interface StoryContextType {
   reorderSlides: (fromIndex: number, toIndex: number) => void;
   incrementTime: (minutes: number) => void;
   importStoryFromScript: (rawScript: string) => void;
+  exportProjectAsJson: () => void;
+  importProjectFromJson: (file: File) => Promise<boolean>;
   resetProject: () => void;
   currentSlideIndex: number;
+  lastSavedTime: string;
 }
 
 const StoryContext = createContext<StoryContextType | null>(null);
 
 export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [projectTitle, setProjectTitle] = useState<string>('Misteri Villa Pine Hills');
-  
-  // Page number watermark badge state
-  const [watermark, setWatermark] = useState<PageWatermarkConfig>(() => {
+  const [lastSavedTime, setLastSavedTime] = useState<string>('Baru saja');
+
+  const [projectTitle, setProjectTitle] = useState<string>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed: StoryProject = JSON.parse(saved);
-        if (parsed.watermark) return parsed.watermark;
+        if (parsed.title) return parsed.title;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return 'Misteri Villa Pine Hills';
+  });
+
+  const [watermark, setWatermark] = useState<PageWatermarkConfig>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed: StoryProject = JSON.parse(saved);
+        if (parsed.watermark) return { ...initialWatermark, ...parsed.watermark };
       }
     } catch (e) {
       console.error(e);
@@ -460,7 +458,7 @@ export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const [characters, setCharacters] = useState<Character[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed: StoryProject = JSON.parse(saved);
         if (parsed.characters && parsed.characters.length > 0) {
@@ -475,7 +473,7 @@ export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const [slides, setSlides] = useState<Slide[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed: StoryProject = JSON.parse(saved);
         if (parsed.slides && parsed.slides.length > 0) {
@@ -490,7 +488,7 @@ export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const [activeSlideId, setActiveSlideId] = useState<string>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed: StoryProject = JSON.parse(saved);
         if (parsed.activeSlideId) return parsed.activeSlideId;
@@ -501,6 +499,7 @@ export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return 'slide-1';
   });
 
+  // Keep activeSlideId valid
   useEffect(() => {
     if (!slides.some(s => s.id === activeSlideId)) {
       if (slides.length > 0) {
@@ -509,6 +508,19 @@ export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, [slides, activeSlideId]);
 
+  // Prevent accidental page refresh / exit
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = 'Perubahan cerita Anda sedang dikerjakan. Yakin ingin keluar atau merefresh halaman?';
+      return e.returnValue;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  // Real-time Auto-Save to localStorage & sessionStorage with backup slot
   useEffect(() => {
     try {
       const project: StoryProject = {
@@ -518,9 +530,15 @@ export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         characters,
         slides,
       };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
+      const serialized = JSON.stringify(project);
+      localStorage.setItem(STORAGE_KEY, serialized);
+      sessionStorage.setItem(STORAGE_KEY, serialized);
+      localStorage.setItem(BACKUP_STORAGE_KEY, serialized);
+
+      const now = new Date();
+      setLastSavedTime(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`);
     } catch (e) {
-      console.error('Failed to save project to localStorage:', e);
+      console.error('Failed to save project to storage:', e);
     }
   }, [projectTitle, activeSlideId, watermark, characters, slides]);
 
@@ -874,6 +892,63 @@ export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setActiveSlideId(parsed.slides[0].id);
   }, []);
 
+  /**
+   * EXPORT PROJECT AS BACKUP JSON FILE
+   */
+  const exportProjectAsJson = useCallback(() => {
+    try {
+      const project: StoryProject = {
+        title: projectTitle,
+        activeSlideId,
+        watermark,
+        characters,
+        slides,
+      };
+      const jsonStr = JSON.stringify(project, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const safeTitle = (projectTitle || 'StoryFrame-Backup').replace(/[^a-zA-Z0-9_-]/g, '_');
+      a.href = url;
+      a.download = `${safeTitle}.storyframe.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+      alert('Gagal mengekspor file cadangan proyek.');
+    }
+  }, [projectTitle, activeSlideId, watermark, characters, slides]);
+
+  /**
+   * IMPORT PROJECT FROM BACKUP JSON FILE
+   */
+  const importProjectFromJson = useCallback(async (file: File): Promise<boolean> => {
+    try {
+      const text = await file.text();
+      const parsed: StoryProject = JSON.parse(text);
+      if (!parsed.slides || !Array.isArray(parsed.slides) || parsed.slides.length === 0) {
+        alert('Format file cadangan tidak valid.');
+        return false;
+      }
+
+      setProjectTitle(parsed.title || 'Proyek Dimuat');
+      if (parsed.watermark) setWatermark(parsed.watermark);
+      if (parsed.characters) setCharacters(parsed.characters);
+      setSlides(parsed.slides);
+      setActiveSlideId(parsed.activeSlideId || parsed.slides[0].id);
+
+      // Save immediately to storage
+      localStorage.setItem(STORAGE_KEY, text);
+      sessionStorage.setItem(STORAGE_KEY, text);
+      alert(`Berhasil memulihkan proyek "${parsed.title || 'Cerita'}" dengan ${parsed.slides.length} slide!`);
+      return true;
+    } catch (e) {
+      console.error(e);
+      alert('Gagal membaca file proyek JSON.');
+      return false;
+    }
+  }, []);
+
   const resetProject = useCallback(() => {
     if (window.confirm('Reset seluruh slide dan pemeran ke template awal misteri?')) {
       const initialSlides = createInitialSlides();
@@ -884,6 +959,7 @@ export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       setActiveSlideId('slide-1');
       setProjectTitle('Misteri Villa Pine Hills');
       localStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_KEY);
     }
   }, []);
 
@@ -911,8 +987,11 @@ export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         reorderSlides,
         incrementTime,
         importStoryFromScript,
+        exportProjectAsJson,
+        importProjectFromJson,
         resetProject,
         currentSlideIndex,
+        lastSavedTime,
       }}
     >
       {children}
