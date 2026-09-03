@@ -8,351 +8,358 @@ export interface ParsedStoryResult {
   slides: Slide[];
 }
 
-export const SAMPLE_SCRIPT_TEMPLATE = `[JUDUL]: Misteri Villa Pine Hills
-[WAKTU_MULAI]: 23:45
+export const SAMPLE_SCRIPT_TEMPLATE = `Pemeran 1  "TukangSoun galek" @reneosound
+pemeran2 "Mas Jagad" @imutnyojag4d
 
-[SLIDE 1 - WHATSAPP]
-[KONTAK]: Nomor Misterius | +62 812-9900-XXXX
-[STATUS]: online
-[WAKTU]: 23:45
+Scene 1 (wa)
+Selamat pagi mas
+mau tanya tentang sewa sound
 
-THEM: Pesan ini telah dihapus (deleted)
-THEM: Jangan buka pintu belakang malam ini, Rian.
-THEM: Aku tahu kamu sedang sendirian di lantai dua.
-ME: SIAPA KAMU?! Jangan main-main! (23:46)
-ME: (vn: 0:14)
+pagi juga mas
+ada yang bisa saya bantu?
 
----
+scene 2 (wa)
+ada yang bisa saya bantu?
+jadi gini mas saya mau sewa soun untuk nikahan apa bisa?
+bisa banget mas, untuk tanggal berapa?
 
-[SLIDE 2 - IG_FEED]
-[USER]: sarahamanda (verified)
-[LOKASI]: Pine Hills Hillside Villa
-[FOTO]: villa
-[LIKES]: 1,420 suka
-[WAKTU]: 3 JAM YANG LALU
-CAPTION: Katanya villa ini ada penjaganya... tapi kok sunyi banget ya? 🌲🏚️
-[KOMENTAR]: Lihat semua 42 komentar
-[NOTIFIKASI]: WhatsApp | +62 812-9900-XXXX | Langkah kakiku sudah ada di tangga bawah.
+scene 3 (twitter)
+Alhamdulillah akhirnya ada yang mau menggenapi list jadwal horeg, semoga bisa lekas budal umroh
 
----
+scene 4 (thread)
+akhirnya nemu Tukang sound yang humble serta responsip, semoga bisa deal sampai hari H
 
-[SLIDE 3 - TWITTER]
-[USER]: Metropolis News Radar | @MetropolisRadar (blue)
-[TEKS]: ⚠️ PERINGATAN DARURAT: Sosok mencurigakan dilaporkan berkeliaran di sekitar Kompleks Villa Pine Hills pukul 23:30 WIB. Warga diimbau mengunci pintu.
-[FOTO]: rumah
-[METRIK]: 48.2K views | 1.4K reposts | 5.9K likes
-[WAKTU]: 11:48 PM · 24 Okt 2026
+scene 5 (wa)
+vn
+siap mas, kalua masalah DP bisa kita bicarakan nantinya, yang penting speknya bisa dipahami terlebih dahulu
+oiya itu untuk inddor atau aoutdoor ya mas?
 
----
+Scene 6 (wa)
+vn
+hehhe kalua itu terserah dari yang tuan rumah mas, kami speknya komplit, mau indoor atau outdorr gasss pokoknya
+tapi anu mas duh gimana ya.....
 
-[SLIDE 4 - WHATSAPP]
-[KONTAK]: Nomor Misterius | +62 812-9900-XXXX
-[BLOKIR]: Anda telah memblokir kontak ini. Ketuk untuk membuka blokir.
-[WAKTU]: 23:50
+Scene 7 (twitter)
+waduh kok ada kata "tapi" nya, wah perasaaanku mulai ndak enak nih...
 
-ME: Maaf nomor kamu aku blokir ya.
-THEM: (system: 🔒 Anda telah memblokir kontak ini.)
+Scene 8 (Thread)
+duh gimana cara ngomongnya ya, bukan perihal nominalnya sih, tapi kan ini acaranya masih lama, semoga beliau bisa memahami kadaanku ini..
 `;
 
 /**
- * Regex Script Parser to convert raw written script into rich slides and characters
+ * Universal Regex & Natural Language Script Parser
+ * Parses both natural script formats (Scene 1 (wa), Pemeran 1 "...", empty-line dialogue groups)
+ * and structured bracket tags ([SLIDE 1 - WA], [KONTAK], THEM:, ME:).
  */
 export function parseScriptToStory(rawScript: string): ParsedStoryResult {
   const lines = rawScript.split(/\r?\n/);
   
-  let projectTitle = 'Cerita Bergambar Baru';
-  let defaultStartTime = '23:45';
+  let projectTitle = 'Cerita StoryFrame';
+  let defaultStartTime = '09:00';
+  const detectedCharactersMap = new Map<string, Character>();
+  const parsedCharactersList: Character[] = [];
 
-  // 1. Extract Global Meta
-  for (const line of lines) {
-    const titleMatch = line.match(/^\[(?:JUDUL|TITLE)\]\s*:\s*(.+)$/i);
+  // Helper to register character
+  const registerChar = (name: string, handle: string, roleLabel: string, isMe = false): Character => {
+    const cleanName = name.replace(/["']/g, '').trim();
+    const cleanHandle = handle.replace(/[@"']/g, '').trim() || cleanName.toLowerCase().replace(/\s+/g, '_');
+    const existing = detectedCharactersMap.get(cleanName.toLowerCase());
+    if (existing) return existing;
+
+    const charId = `char-${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '_') || Date.now()}`;
+    const avatar = cleanName.toLowerCase().includes('cewe') || cleanName.toLowerCase().includes('sarah') || cleanName.toLowerCase().includes('wanita')
+      ? PRESET_AVATARS.girlFriend
+      : cleanName.includes('+62') || cleanName.toLowerCase().includes('misterius')
+      ? PRESET_AVATARS.unknownContact
+      : cleanName.toLowerCase().includes('radar') || cleanName.toLowerCase().includes('berita')
+      ? PRESET_AVATARS.verifiedBrand
+      : cleanName.toLowerCase().includes('sound') || cleanName.toLowerCase().includes('audio')
+      ? PRESET_AVATARS.detective
+      : cleanName.toLowerCase().includes('jagad') || cleanName.toLowerCase().includes('rian') || isMe
+      ? PRESET_AVATARS.mysteriousMan
+      : PRESET_AVATARS.detective;
+
+    const newChar: Character = {
+      id: charId,
+      name: cleanName,
+      handle: cleanHandle,
+      avatar,
+      roleLabel,
+      colorTag: parsedCharactersList.length === 0 ? 'indigo' : parsedCharactersList.length === 1 ? 'emerald' : 'amber',
+      verified: false,
+      phoneOrStatus: 'online',
+      isMe,
+    };
+
+    detectedCharactersMap.set(cleanName.toLowerCase(), newChar);
+    parsedCharactersList.push(newChar);
+    return newChar;
+  };
+
+  // 1. EXTRACT CHARACTERS (Pemeran 1, Pemeran 2, Tokoh, etc.)
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i].trim();
+    if (!l) continue;
+
+    // Check [JUDUL]
+    const titleMatch = l.match(/^\[(?:JUDUL|TITLE)\]\s*:\s*(.+)$/i);
     if (titleMatch) {
       projectTitle = titleMatch[1].trim();
+      continue;
     }
-    const timeMatch = line.match(/^\[(?:WAKTU_MULAI|START_TIME)\]\s*:\s*(.+)$/i);
-    if (timeMatch) {
-      defaultStartTime = timeMatch[1].trim();
+
+    // Pattern: Pemeran 1 "TukangSoun galek" @reneosound OR Pemeran 2 "Mas Jagad" @imutnyojag4d
+    const pemPattern = /^(?:pemeran|tokoh|karakter|actor|cast)\s*(\d+)?\s*[:=]?\s*["“]([^"”]+)["”]\s*(?:@?([A-Za-z0-9_.-]+))?/i;
+    const pemMatch = l.match(pemPattern);
+    if (pemMatch) {
+      const pNum = pemMatch[1] || `${parsedCharactersList.length + 1}`;
+      const pName = pemMatch[2].trim();
+      const pHandle = pemMatch[3] ? pemMatch[3].trim() : pName.toLowerCase().replace(/\s+/g, '_');
+      const isMe = pNum === '2' || pNum === '1' && parsedCharactersList.length > 0;
+      registerChar(pName, pHandle, `Pemeran ${pNum}`, isMe);
+      continue;
+    }
+
+    // Pattern: Pemeran 1 : Nama (@handle)
+    const pemPattern2 = /^(?:pemeran|tokoh|karakter)\s*(\d+)?\s*[:=]\s*([A-Za-z0-9_ ]+)(?:\s*[@(]([A-Za-z0-9_.-]+)\)?)?/i;
+    const pemMatch2 = l.match(pemPattern2);
+    if (pemMatch2 && !l.toLowerCase().startsWith('scene') && !l.toLowerCase().startsWith('slide')) {
+      const pNum = pemMatch2[1] || `${parsedCharactersList.length + 1}`;
+      const pName = pemMatch2[2].trim();
+      const pHandle = pemMatch2[3] ? pemMatch2[3].trim() : pName.toLowerCase().replace(/\s+/g, '_');
+      registerChar(pName, pHandle, `Pemeran ${pNum}`, pNum === '2');
+      continue;
     }
   }
 
-  // 2. Split script into Slide chunks by '---' or '[SLIDE'
-  const rawSlideChunks: string[] = [];
-  let currentChunk: string[] = [];
+  // 2. SPLIT SCRIPT INTO SCENE CHUNKS
+  // Recognizes: "Scene 1 (wa)", "scene 2 (wa)", "Scene 3 (twitter)", "Scene 4 (thread)", "[SLIDE 1 - WHATSAPP]", "---"
+  const rawSceneChunks: { header: string; content: string[] }[] = [];
+  let currentChunkHeader = '';
+  let currentChunkLines: string[] = [];
 
-  for (const line of lines) {
-    if (line.trim().startsWith('---') || line.trim().match(/^\[SLIDE\s*\d+/i)) {
-      if (currentChunk.length > 0) {
-        rawSlideChunks.push(currentChunk.join('\n'));
-        currentChunk = [];
+  const sceneHeaderRegex = /^(?:(?:scene|slide|bagian|part)\s*(\d+)?\s*(?:\(([^)]+)\)|-\s*([A-Za-z0-9_]+))?|\[SLIDE\s*(\d+)?\s*(?:-\s*([A-Za-z0-9_]+))?\])/i;
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i];
+    const trimmed = rawLine.trim();
+
+    // Ignore top character definition lines from becoming scene content
+    if (trimmed.match(/^(?:pemeran|tokoh|karakter|actor|cast)\s*\d*/i) && rawSceneChunks.length === 0 && currentChunkHeader === '') {
+      continue;
+    }
+    if (trimmed.match(/^\[(?:JUDUL|TITLE|WAKTU_MULAI)\]/i) && rawSceneChunks.length === 0 && currentChunkHeader === '') {
+      continue;
+    }
+
+    if (trimmed.startsWith('---') || sceneHeaderRegex.test(trimmed)) {
+      if (currentChunkHeader || currentChunkLines.length > 0) {
+        rawSceneChunks.push({
+          header: currentChunkHeader,
+          content: currentChunkLines,
+        });
+        currentChunkLines = [];
       }
-      if (line.trim().match(/^\[SLIDE\s*\d+/i)) {
-        currentChunk.push(line);
-      }
+      currentChunkHeader = trimmed.startsWith('---') ? '' : trimmed;
     } else {
-      currentChunk.push(line);
+      currentChunkLines.push(rawLine);
     }
   }
-  if (currentChunk.length > 0) {
-    rawSlideChunks.push(currentChunk.join('\n'));
+
+  if (currentChunkHeader || currentChunkLines.length > 0) {
+    rawSceneChunks.push({
+      header: currentChunkHeader,
+      content: currentChunkLines,
+    });
   }
 
-  // If no slide headers were found, treat whole text as single slide
-  if (rawSlideChunks.length === 0) {
-    rawSlideChunks.push(rawScript);
+  // Fallback if no scenes found
+  if (rawSceneChunks.length === 0) {
+    rawSceneChunks.push({
+      header: 'Scene 1 (wa)',
+      content: lines,
+    });
   }
 
+  // If title was default and we have characters, name after them
+  if (projectTitle === 'Cerita StoryFrame' && parsedCharactersList.length >= 2) {
+    projectTitle = `Cerita ${parsedCharactersList[0].name} & ${parsedCharactersList[1].name}`;
+  }
+
+  // 3. PARSE EACH SCENE
   const generatedSlides: Slide[] = [];
-  const detectedCharactersMap = new Map<string, Character>();
-
   let runningTime = defaultStartTime;
 
-  rawSlideChunks.forEach((chunk, index) => {
-    const chunkLines = chunk.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-    if (chunkLines.length === 0) return;
+  const p1 = parsedCharactersList[0] || registerChar('Tukang Sound', 'reneosound', 'Pemeran 1', false);
+  const p2 = parsedCharactersList[1] || registerChar('Mas Jagad', 'imutnyojag4d', 'Pemeran 2', true);
 
+  rawSceneChunks.forEach((chunk, index) => {
     let platform: PlatformType = 'whatsapp';
     let slideTitle = `Slide ${index + 1}`;
     let slideTime = runningTime;
     let themeMode: 'dark' | 'light' = 'dark';
 
-    // Slide Header detection
-    const firstLine = chunkLines[0];
-    const slideHeaderMatch = firstLine.match(/^\[SLIDE\s*(\d+)?\s*(?:-\s*([A-Z_]+))?\]/i);
-    if (slideHeaderMatch) {
-      if (slideHeaderMatch[1]) slideTitle = `Slide ${slideHeaderMatch[1]}`;
-      if (slideHeaderMatch[2]) {
-        const platStr = slideHeaderMatch[2].toLowerCase();
-        if (platStr.includes('feed') || platStr.includes('ig_feed') || platStr.includes('post')) {
-          platform = 'instagram-feed';
-        } else if (platStr.includes('tweet') || platStr.includes('twitter') || platStr.includes('x')) {
-          platform = 'twitter';
-        } else if (platStr.includes('dm') || platStr.includes('ig_dm')) {
-          platform = 'instagram-dm';
-        } else if (platStr.includes('threads')) {
-          platform = 'threads';
-        } else {
-          platform = 'whatsapp';
-        }
+    // Parse Scene Header (e.g. "Scene 1 (wa)", "scene 3 (twitter)", "scene 4 (thread)")
+    const headerMatch = chunk.header.match(sceneHeaderRegex);
+    if (headerMatch) {
+      const sceneNum = headerMatch[1] || headerMatch[4] || `${index + 1}`;
+      slideTitle = `Slide ${sceneNum}`;
+      const platStr = (headerMatch[2] || headerMatch[3] || headerMatch[5] || '').toLowerCase().trim();
+
+      if (platStr.includes('twitter') || platStr.includes('tweet') || platStr.includes(' x')) {
+        platform = 'twitter';
+      } else if (platStr.includes('thread')) {
+        platform = 'threads';
+      } else if (platStr.includes('feed') || platStr.includes('post') || platStr.includes('ig_feed') || platStr.includes('postingan')) {
+        platform = 'instagram-feed';
+      } else if (platStr.includes('dm') || platStr.includes('ig_dm') || platStr.includes('inbox')) {
+        platform = 'instagram-dm';
+      } else {
+        platform = 'whatsapp';
       }
     }
 
-    // Default Slide Data Setup
-    let contactName = 'Kontak Cerita';
-    let handle = 'user_cerita';
+    // Default Characters for this Slide
+    // In alternating scenes, determine primary poster
+    const activePoster = (platform === 'threads' || (index % 2 === 1 && platform === 'twitter')) ? p2 : p1;
+    const contactForChat = p1;
+
+    let contactName = contactForChat.name;
     let statusText = 'online';
     let isBlocked = false;
     let blockedNoticeText = 'Anda telah memblokir kontak ini. Ketuk untuk membuka blokir.';
     let mediaUrl = PRESET_MEDIA.abandonedHouse;
-    let captionText = 'Momen malam ini...';
-    let tweetText = 'Update cerita malam ini.';
+    let captionOrPostText = '';
     let isVerified = false;
     let verifiedType: 'blue' | 'gold' | 'none' = 'none';
-    let likesCount = '1,420 suka';
+    let likesCount = '1,420';
     let viewsCount = '12.5K';
     let repostsCount = '340';
-    let commentsText = 'Lihat komentar...';
-    let locationTag = 'Villa Pine Hills';
-    
-    // Notification setup
+    let commentsText = 'Lihat semua 24 komentar';
+    let locationTag = 'Jakarta, Indonesia';
+
+    // Notification
     let notificationEnabled = false;
     let notifPlatform: 'whatsapp' | 'instagram' | 'twitter' | 'emergency' | 'messages' = 'whatsapp';
     let notifTitle = 'Peringatan Masuk';
-    let notifMsg = 'Ada aktivitas mencurigakan...';
+    let notifMsg = 'Ada pesan baru...';
     let notifTime = 'Baru saja';
 
     const waMessages: WAMessage[] = [];
 
-    // Parse each line in the chunk
-    for (const l of chunkLines) {
-      // 1. Time config
-      const timeMatch = l.match(/^\[(?:WAKTU|TIME)\]\s*:\s*(.+)$/i);
-      if (timeMatch) {
-        slideTime = timeMatch[1].trim();
-        runningTime = slideTime;
-      }
+    // Parse Content Lines
+    // Group lines into paragraphs to support alternating bubble dialogue
+    const paragraphs: string[][] = [];
+    let currentPara: string[] = [];
 
-      // 2. Contact / User info
-      const userMatch = l.match(/^\[(?:KONTAK|USER|AUTHOR|AKUN)\]\s*:\s*(.+)$/i);
-      if (userMatch) {
-        const rawUser = userMatch[1].trim();
-        const parts = rawUser.split('|').map(p => p.trim());
-        contactName = parts[0].replace(/[@()]/g, '');
-        if (parts.length > 1) {
-          handle = parts[1].replace(/^@/, '');
-        } else {
-          handle = contactName.toLowerCase().replace(/\s+/g, '_');
+    for (const rawL of chunk.content) {
+      const trimmed = rawL.trim();
+      if (!trimmed) {
+        if (currentPara.length > 0) {
+          paragraphs.push(currentPara);
+          currentPara = [];
         }
-
-        if (rawUser.toLowerCase().includes('(verified)') || rawUser.toLowerCase().includes('(blue)')) {
-          isVerified = true;
-          verifiedType = 'blue';
-        } else if (rawUser.toLowerCase().includes('(gold)')) {
-          isVerified = true;
-          verifiedType = 'gold';
-        }
-
-        // Register character
-        if (!detectedCharactersMap.has(contactName)) {
-          detectedCharactersMap.set(contactName, {
-            id: `char-${contactName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
-            name: contactName,
-            handle,
-            avatar: contactName.toLowerCase().includes('sarah') || contactName.toLowerCase().includes('cewe')
-              ? PRESET_AVATARS.girlFriend
-              : contactName.includes('+62') || contactName.toLowerCase().includes('misterius')
-              ? PRESET_AVATARS.unknownContact
-              : contactName.toLowerCase().includes('radar') || contactName.toLowerCase().includes('berita')
-              ? PRESET_AVATARS.verifiedBrand
-              : PRESET_AVATARS.mysteriousMan,
-            roleLabel: contactName.includes('+62') ? 'Peneror' : isVerified ? 'Akun Resmi' : 'Pemeran',
-            colorTag: 'indigo',
-            verified: isVerified,
-            phoneOrStatus: 'online',
-          });
-        }
-      }
-
-      // 3. Status text
-      const statusMatch = l.match(/^\[STATUS\]\s*:\s*(.+)$/i);
-      if (statusMatch) {
-        statusText = statusMatch[1].trim();
-      }
-
-      // 4. Blocked Contact input
-      const blockMatch = l.match(/^\[(?:BLOKIR|BLOCK|BLOCKED)\]\s*(?::\s*(.+))?$/i);
-      if (blockMatch) {
-        isBlocked = true;
-        if (blockMatch[1] && blockMatch[1].trim() !== 'ON' && blockMatch[1].trim() !== 'TRUE') {
-          blockedNoticeText = blockMatch[1].trim();
-        }
-      }
-
-      // 5. Location
-      const locMatch = l.match(/^\[(?:LOKASI|LOCATION)\]\s*:\s*(.+)$/i);
-      if (locMatch) {
-        locationTag = locMatch[1].trim();
-      }
-
-      // 6. Photo / Media
-      const photoMatch = l.match(/^\[(?:FOTO|MEDIA|IMAGE)\]\s*:\s*(.+)$/i);
-      if (photoMatch) {
-        const pKey = photoMatch[1].toLowerCase();
-        if (pKey.includes('cctv')) mediaUrl = PRESET_MEDIA.cctvEvidence;
-        else if (pKey.includes('dokumen') || pKey.includes('surat')) mediaUrl = PRESET_MEDIA.documentEvidence;
-        else mediaUrl = PRESET_MEDIA.abandonedHouse;
-      }
-
-      // 7. Caption
-      const capMatch = l.match(/^(?:CAPTION|TEKS|TWEET)\s*:\s*(.+)$/i);
-      if (capMatch) {
-        captionText = capMatch[1].trim();
-        tweetText = capMatch[1].trim();
-      }
-
-      // 8. Likes / Metrics
-      const likesMatch = l.match(/^\[(?:LIKES|METRIK)\]\s*:\s*(.+)$/i);
-      if (likesMatch) {
-        const mStr = likesMatch[1].trim();
-        likesCount = mStr;
-        if (mStr.includes('views')) {
-          const parts = mStr.split('|').map(p => p.trim());
-          viewsCount = parts[0].replace(/views/i, '').trim();
-          if (parts[1]) repostsCount = parts[1].replace(/reposts/i, '').trim();
-          if (parts[2]) likesCount = parts[2].replace(/likes/i, '').trim();
-        }
-      }
-
-      // 9. Comments
-      const commMatch = l.match(/^\[(?:KOMENTAR|COMMENTS)\]\s*:\s*(.+)$/i);
-      if (commMatch) {
-        commentsText = commMatch[1].trim();
-      }
-
-      // 10. Notification Pop-up
-      const notifMatch = l.match(/^\[(?:NOTIFIKASI|NOTIF|SUSPENSE)\]\s*:\s*(.+)$/i);
-      if (notifMatch) {
-        const nParts = notifMatch[1].split('|').map(p => p.trim());
-        notificationEnabled = true;
-        if (nParts.length >= 3) {
-          const platStr = nParts[0].toLowerCase();
-          if (platStr.includes('ig') || platStr.includes('instagram')) notifPlatform = 'instagram';
-          else if (platStr.includes('sos') || platStr.includes('darurat')) notifPlatform = 'emergency';
-          else notifPlatform = 'whatsapp';
-          notifTitle = nParts[1];
-          notifMsg = nParts[2];
-        } else if (nParts.length === 2) {
-          notifTitle = nParts[0];
-          notifMsg = nParts[1];
-        } else {
-          notifMsg = nParts[0];
-        }
-      }
-
-      // 11. Dialogue Bubbles (WhatsApp / DM)
-      // Syntax: THEM: message | ME: message | SARAH: message | KIRI: message | KANAN: message
-      const msgMatch = l.match(/^(THEM|ME|SAYA|LAWAN|KIRI|KANAN|SYSTEM|SISTEM|[A-Za-z0-9_+ -]+)\s*:\s*(.+)$/i);
-      if (msgMatch && !l.startsWith('[') && !l.startsWith('CAPTION:') && !l.startsWith('TEKS:')) {
-        const senderTag = msgMatch[1].toUpperCase();
-        let content = msgMatch[2].trim();
-        const isMe = senderTag === 'ME' || senderTag === 'SAYA' || senderTag === 'KANAN';
-        const isSystem = senderTag === 'SYSTEM' || senderTag === 'SISTEM';
-
-        // Check for (deleted), (vn: 0:15), (img: cctv), (time: 23:45), (system: ...)
-        let msgType: 'text' | 'image' | 'voice' | 'deleted' | 'system' = isSystem ? 'system' : 'text';
-        let voiceDuration = '0:15';
-        let msgMedia: string | undefined = undefined;
-        let msgTime = slideTime;
-
-        if (content.toLowerCase().includes('(deleted)') || content.toLowerCase().includes('(dihapus)')) {
-          msgType = 'deleted';
-          content = 'Pesan ini telah dihapus';
-        }
-
-        const sysMatch = content.match(/\((?:system|sistem|blokir)\s*:\s*([^)]+)\)/i);
-        if (sysMatch) {
-          msgType = 'system';
-          content = sysMatch[1];
-        }
-
-        const vnMatch = content.match(/\((?:vn|voice)\s*:\s*([0-9:]+)\)/i);
-        if (vnMatch) {
-          msgType = 'voice';
-          voiceDuration = vnMatch[1];
-          content = 'Voice Message';
-        }
-
-        const imgMatch = content.match(/\((?:img|foto|gambar)\s*:\s*([a-z0-9_]+)\)/i);
-        if (imgMatch) {
-          msgType = 'image';
-          const iKey = imgMatch[1].toLowerCase();
-          msgMedia = iKey.includes('cctv') ? PRESET_MEDIA.cctvEvidence : PRESET_MEDIA.abandonedHouse;
-          content = content.replace(/\((?:img|foto|gambar)\s*:\s*([a-z0-9_]+)\)/i, '').trim();
-        }
-
-        const timeInMsg = content.match(/\(([0-9]{1,2}:[0-9]{2})\)/);
-        if (timeInMsg) {
-          msgTime = timeInMsg[1];
-          content = content.replace(/\(([0-9]{1,2}:[0-9]{2})\)/, '').trim();
-        }
-
-        waMessages.push({
-          id: `m-${Date.now()}-${waMessages.length}`,
-          sender: isMe ? 'me' : 'them',
-          type: msgType,
-          text: content,
-          time: msgTime,
-          status: 'read',
-          voiceDuration: msgType === 'voice' ? voiceDuration : undefined,
-          mediaUrl: msgMedia,
-        });
+      } else {
+        currentPara.push(trimmed);
       }
     }
+    if (currentPara.length > 0) {
+      paragraphs.push(currentPara);
+    }
 
-    // Next slide runs 2 minutes later
+    // Platform-specific content parsing
+    if (platform === 'twitter' || platform === 'threads' || platform === 'instagram-feed') {
+      const allText = chunk.content.map(l => l.trim()).filter(Boolean).join('\n');
+      captionOrPostText = allText || 'Update status terbaru...';
+    } else {
+      // WhatsApp or Instagram DM: Parse Dialogues
+      let currentSenderToggle: 'them' | 'me' = 'them';
+
+      paragraphs.forEach((para) => {
+        let isVNGroup = false;
+
+        para.forEach((line) => {
+          let content = line;
+
+          // Check for [BLOKIR]
+          const blockMatch = content.match(/^\[(?:BLOKIR|BLOCK|BLOCKED)\]\s*(?::\s*(.+))?$/i);
+          if (blockMatch) {
+            isBlocked = true;
+            if (blockMatch[1] && blockMatch[1].trim() !== 'ON' && blockMatch[1].trim() !== 'TRUE') {
+              blockedNoticeText = blockMatch[1].trim();
+            }
+            return;
+          }
+
+          // Check if line is just "vn" or "voice note"
+          if (content.toLowerCase() === 'vn' || content.toLowerCase() === 'voice note' || content.toLowerCase() === '(vn)') {
+            isVNGroup = true;
+            return;
+          }
+
+          let msgType: 'text' | 'image' | 'voice' | 'deleted' | 'system' = 'text';
+          let voiceDuration = '0:14';
+          let msgMedia: string | undefined = undefined;
+          let sender: 'me' | 'them' = currentSenderToggle;
+
+          // Check explicit prefix: "THEM:", "ME:", "MAS JAGAD:", "TUKANG SOUND:"
+          const prefixMatch = content.match(/^(THEM|ME|SAYA|LAWAN|KIRI|KANAN|SYSTEM|SISTEM|[A-Za-z0-9_+ -]+)\s*:\s*(.+)$/i);
+          if (prefixMatch && !content.startsWith('[') && !content.startsWith('http')) {
+            const pTag = prefixMatch[1].toUpperCase();
+            content = prefixMatch[2].trim();
+
+            if (pTag === 'ME' || pTag === 'SAYA' || pTag === 'KANAN' || pTag.includes(p2.name.toUpperCase())) {
+              sender = 'me';
+            } else if (pTag === 'SYSTEM' || pTag === 'SISTEM') {
+              msgType = 'system';
+            } else {
+              sender = 'them';
+            }
+          }
+
+          // Check inline tags
+          if (isVNGroup || content.toLowerCase().includes('(vn') || content.toLowerCase().includes('(voice')) {
+            msgType = 'voice';
+            const durMatch = content.match(/\((?:vn|voice)\s*:\s*([0-9:]+)\)/i);
+            if (durMatch) voiceDuration = durMatch[1];
+          }
+
+          if (content.toLowerCase().includes('(deleted)') || content.toLowerCase().includes('(dihapus)')) {
+            msgType = 'deleted';
+            content = 'Pesan ini telah dihapus';
+          }
+
+          const sysMatch = content.match(/\((?:system|sistem|blokir)\s*:\s*([^)]+)\)/i);
+          if (sysMatch) {
+            msgType = 'system';
+            content = sysMatch[1];
+          }
+
+          const imgMatch = content.match(/\((?:img|foto|gambar)\s*:\s*([a-z0-9_]+)\)/i);
+          if (imgMatch) {
+            msgType = 'image';
+            msgMedia = PRESET_MEDIA.cctvEvidence;
+            content = content.replace(/\((?:img|foto|gambar)\s*:\s*([a-z0-9_]+)\)/i, '').trim();
+          }
+
+          waMessages.push({
+            id: `m-${Date.now()}-${waMessages.length}`,
+            sender,
+            type: msgType,
+            text: content,
+            time: slideTime,
+            status: 'read',
+            voiceDuration: msgType === 'voice' ? voiceDuration : undefined,
+            mediaUrl: msgMedia,
+          });
+        });
+
+        // Alternate sender for the next paragraph
+        currentSenderToggle = currentSenderToggle === 'them' ? 'me' : 'them';
+      });
+    }
+
     runningTime = incrementTimeString(slideTime, 2);
-
-    const activeChar = detectedCharactersMap.get(contactName);
-    const chosenAvatar = activeChar ? activeChar.avatar : PRESET_AVATARS.unknownContact;
 
     const newSlide: Slide = {
       id: `slide-${Date.now()}-${index}`,
@@ -362,7 +369,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
       statusBar: {
         show: true,
         time: slideTime,
-        batteryLevel: Math.max(10, 85 - index * 5),
+        batteryLevel: Math.max(10, 88 - index * 4),
         signalType: '5G',
         carrier: 'Telkomsel',
       },
@@ -372,34 +379,36 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
         title: notifTitle,
         message: notifMsg,
         time: notifTime,
-        avatar: PRESET_AVATARS.unknownContact,
+        avatar: p1.avatar,
       },
       whatsapp: {
         contactName,
-        avatar: chosenAvatar,
+        avatar: p1.avatar,
         status: statusText,
         showCallButtons: true,
         isBlocked,
         blockedNoticeText,
+        characterId: p1.id,
         messages: waMessages.length > 0 ? waMessages : [
           {
             id: `m1-${index}`,
             sender: 'them',
             type: 'text',
-            text: 'Kelanjutan cerita...',
+            text: 'Percakapan...',
             time: slideTime,
             status: 'read',
           }
         ],
       },
       instagramDm: {
-        contactName,
-        handle,
-        avatar: chosenAvatar,
+        contactName: p1.name,
+        handle: p1.handle,
+        avatar: p1.avatar,
         verified: isVerified,
         activeStatus: statusText,
         isBlocked,
         blockedNoticeText,
+        characterId: p1.id,
         messages: waMessages.map((w, i) => ({
           id: `ig-${i}`,
           sender: w.sender,
@@ -410,45 +419,48 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
         })),
       },
       twitter: {
-        authorName: contactName,
-        handle,
-        avatar: chosenAvatar,
+        authorName: activePoster.name,
+        handle: activePoster.handle,
+        avatar: activePoster.avatar,
         verified: isVerified,
         verifiedType,
-        text: tweetText,
-        mediaUrl,
+        text: captionOrPostText || 'Update status terbaru.',
+        mediaUrl: undefined,
         device: 'Twitter for iPhone',
         timestamp: `${slideTime} · Hari Ini`,
         viewsCount,
         repostsCount,
-        quotesCount: '45',
+        quotesCount: '12',
         likesCount,
-        bookmarksCount: '120',
+        bookmarksCount: '48',
+        characterId: activePoster.id,
       },
       instagramFeed: {
-        authorName: handle,
-        avatar: chosenAvatar,
+        authorName: activePoster.handle,
+        avatar: activePoster.avatar,
         location: locationTag,
         verified: isVerified,
         mediaUrl,
         isLiked: true,
-        likesCount,
-        caption: captionText,
-        timestamp: '3 JAM YANG LALU',
+        likesCount: `${likesCount} suka`,
+        caption: captionOrPostText,
+        timestamp: '2 JAM YANG LALU',
         commentCount: commentsText,
+        characterId: activePoster.id,
       },
       threads: {
-        authorName: handle,
-        handle,
-        avatar: chosenAvatar,
+        authorName: activePoster.handle,
+        handle: activePoster.handle,
+        avatar: activePoster.avatar,
         verified: isVerified,
-        text: captionText || tweetText,
-        mediaUrl,
-        timestamp: '10m',
-        likesCount: '450',
-        repliesCount: '32',
-        repostsCount: '14',
+        text: captionOrPostText || 'Melanjutkan utas...',
+        mediaUrl: undefined,
+        timestamp: '5m',
+        likesCount,
+        repliesCount: '18',
+        repostsCount: '8',
         hasReply: false,
+        characterId: activePoster.id,
       },
     };
 
@@ -457,7 +469,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
 
   return {
     projectTitle,
-    characters: Array.from(detectedCharactersMap.values()),
+    characters: parsedCharactersList.length > 0 ? parsedCharactersList : Array.from(detectedCharactersMap.values()),
     slides: generatedSlides,
   };
 }
