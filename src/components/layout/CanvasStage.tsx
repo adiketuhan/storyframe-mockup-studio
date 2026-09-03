@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
 import { useStory } from '../../context/StoryContext';
 import { PhoneStatusBar } from '../mockups/common/PhoneStatusBar';
 import { IncomingNotification } from '../mockups/common/IncomingNotification';
@@ -8,6 +8,8 @@ import { InstagramDMMockup } from '../mockups/instagram-dm/InstagramDMMockup';
 import { TwitterMockup } from '../mockups/twitter/TwitterMockup';
 import { InstagramFeedMockup } from '../mockups/instagram-feed/InstagramFeedMockup';
 import { ThreadsMockup } from '../mockups/threads/ThreadsMockup';
+import { downloadSlidePng, batchExportZip, captureSlideElement } from '../../utils/exportUtils';
+import { Download, FileArchive, Loader2 } from 'lucide-react';
 import type { WAMessage, IGDMMessage } from '../../types/story';
 
 interface CanvasStageProps {
@@ -15,7 +17,9 @@ interface CanvasStageProps {
 }
 
 export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale = 1 }, ref) => {
-  const { activeSlide, updateActiveSlide } = useStory();
+  const { activeSlide, updateActiveSlide, slides, projectTitle, setActiveSlideId, currentSlideIndex } = useStory();
+  const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [exportType, setExportType] = useState<'single' | 'zip' | null>(null);
 
   if (!activeSlide) return null;
 
@@ -107,6 +111,55 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
     }));
   };
 
+  const handleQuickDownloadSingle = async () => {
+    const canvasElement = document.getElementById('storyframe-export-canvas');
+    if (!canvasElement) return;
+
+    try {
+      setIsExporting(true);
+      setExportType('single');
+      const indexStr = (currentSlideIndex + 1).toString().padStart(2, '0');
+      const safeProject = (projectTitle || 'story').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const safeTitle = activeSlide.title.replace(/[^a-zA-Z0-9_-]/g, '_') || 'slide';
+      const fileName = `slide-${indexStr}_${safeProject}_${activeSlide.platform}_${safeTitle}.png`;
+      await downloadSlidePng(canvasElement, fileName);
+    } catch (err) {
+      console.error(err);
+      alert('Gagal mendownload gambar. Silakan coba lagi.');
+    } finally {
+      setIsExporting(false);
+      setExportType(null);
+    }
+  };
+
+  const handleQuickDownloadZip = async () => {
+    try {
+      setIsExporting(true);
+      setExportType('zip');
+
+      const renderSlideToBlob = async (slide: typeof slides[0]) => {
+        setActiveSlideId(slide.id);
+        await new Promise(r => setTimeout(r, 180));
+        const canvasElement = document.getElementById('storyframe-export-canvas');
+        if (!canvasElement) throw new Error('Canvas not found');
+        return await captureSlideElement(canvasElement, { pixelRatio: 2, width: 1080, height: 1440 });
+      };
+
+      await batchExportZip(
+        slides,
+        renderSlideToBlob,
+        projectTitle || 'StoryFrame-Story',
+        () => {}
+      );
+    } catch (err) {
+      console.error(err);
+      alert('Gagal mendownload paket ZIP.');
+    } finally {
+      setIsExporting(false);
+      setExportType(null);
+    }
+  };
+
   const renderMockup = () => {
     switch (activeSlide.platform) {
       case 'whatsapp':
@@ -192,6 +245,49 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
 
       {/* External Page Number & Content Title Bar (OUTSIDE the mockup image) */}
       <ExternalPageIndicator />
+
+      {/* Quick 1-Click Download Action Bar (Directly below phone) */}
+      <div className="w-full max-w-[420px] mt-2.5 grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          disabled={isExporting}
+          onClick={handleQuickDownloadSingle}
+          className="py-2.5 px-3 bg-emerald-600/90 hover:bg-emerald-500 border border-emerald-500/40 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-600/20 transition-all active:scale-95 disabled:opacity-50"
+          title="Download gambar slide yang sedang tampil sebagai file PNG 1080x1440 px"
+        >
+          {isExporting && exportType === 'single' ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Merender PNG...</span>
+            </>
+          ) : (
+            <>
+              <Download className="w-3.5 h-3.5" />
+              <span>Unduh Slide Ini (PNG)</span>
+            </>
+          )}
+        </button>
+
+        <button
+          type="button"
+          disabled={isExporting}
+          onClick={handleQuickDownloadZip}
+          className="py-2.5 px-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 border border-indigo-500/40 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 shadow-md shadow-indigo-600/20 transition-all active:scale-95 disabled:opacity-50"
+          title="Download semua slide dalam cerita sekaligus sebagai file ZIP terurut"
+        >
+          {isExporting && exportType === 'zip' ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Membuat ZIP...</span>
+            </>
+          ) : (
+            <>
+              <FileArchive className="w-3.5 h-3.5" />
+              <span>Unduh Semua ({slides.length} ZIP)</span>
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 });
