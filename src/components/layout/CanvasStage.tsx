@@ -24,6 +24,43 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
 
   if (!activeSlide) return null;
 
+  // Real-time synchronization between Status Bar Time & Chat Message Time
+  const handleUpdateTime = (newTime: string) => {
+    updateActiveSlide(slide => {
+      let updatedWA = { ...slide.whatsapp };
+      if (updatedWA.messages && updatedWA.messages.length > 0) {
+        const msgs = updatedWA.messages.map((m, idx) => {
+          if (idx === updatedWA.messages.length - 1) {
+            return { ...m, time: newTime };
+          }
+          return m;
+        });
+        updatedWA.messages = msgs;
+      }
+
+      let updatedIGDM = { ...slide.instagramDm };
+      if (updatedIGDM.messages && updatedIGDM.messages.length > 0) {
+        const msgs = updatedIGDM.messages.map((m, idx) => {
+          if (idx === updatedIGDM.messages.length - 1) {
+            return { ...m, time: newTime };
+          }
+          return m;
+        });
+        updatedIGDM.messages = msgs;
+      }
+
+      return {
+        ...slide,
+        statusBar: {
+          ...slide.statusBar,
+          time: newTime,
+        },
+        whatsapp: updatedWA,
+        instagramDm: updatedIGDM,
+      };
+    });
+  };
+
   const handleUpdateWAHeader = (field: string, value: any) => {
     updateActiveSlide(slide => ({
       ...slide,
@@ -38,8 +75,18 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
     updateActiveSlide(slide => {
       const msgs = [...slide.whatsapp.messages];
       msgs[index] = { ...msgs[index], ...updated };
+
+      // Auto-sync status bar time with the last message time
+      const newStatusBarTime = (index === msgs.length - 1 && updated.time)
+        ? updated.time
+        : slide.statusBar.time;
+
       return {
         ...slide,
+        statusBar: {
+          ...slide.statusBar,
+          time: newStatusBarTime,
+        },
         whatsapp: {
           ...slide.whatsapp,
           messages: msgs,
@@ -62,8 +109,18 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
     updateActiveSlide(slide => {
       const msgs = [...slide.instagramDm.messages];
       msgs[index] = { ...msgs[index], ...updated };
+
+      // Auto-sync status bar time with the last message time
+      const newStatusBarTime = (index === msgs.length - 1 && updated.time)
+        ? updated.time
+        : slide.statusBar.time;
+
       return {
         ...slide,
+        statusBar: {
+          ...slide.statusBar,
+          time: newStatusBarTime,
+        },
         instagramDm: {
           ...slide.instagramDm,
           messages: msgs,
@@ -295,8 +352,9 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
             <span>💡 Tips Mudah untuk Pemula:</span>
           </p>
           <ul className="list-disc list-inside space-y-1 text-[11px] text-indigo-200/90">
-            <li><strong>Klik langsung teks di layar HP</strong> (nama kontak, pesan, jam) untuk mengetik.</li>
-            <li>Gunakan tombol <strong>+ Masuk (Kiri)</strong> atau <strong>+ Keluar (Kanan)</strong> di bawah HP untuk menambah balon chat secara instan.</li>
+            <li><strong>Klik langsung teks di layar HP</strong> (jam atas, nama kontak, pesan) untuk mengubahnya seketika.</li>
+            <li>Jam di status bar atas <strong>otomatis sinkron</strong> dengan jam balon chat!</li>
+            <li>Gunakan tombol <strong>+ Kiri (Lawan)</strong> atau <strong>+ Kanan (Saya)</strong> di bawah HP untuk menambah balon chat secara instan.</li>
             <li>Klik tombol hijau <strong>Unduh Slide Ini (PNG)</strong> jika gambar sudah selesai.</li>
           </ul>
         </div>
@@ -313,11 +371,12 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
           borderRadius: 0,
         }}
       >
-        {/* Phone Status Bar */}
+        {/* Phone Status Bar (Synchronized with Chat Time) */}
         <PhoneStatusBar
           config={activeSlide.statusBar}
           themeMode={activeSlide.themeMode}
           isDarkPlatform={activeSlide.platform === 'twitter' || activeSlide.platform === 'threads' ? activeSlide.themeMode === 'dark' : undefined}
+          onUpdateTime={handleUpdateTime}
         />
 
         {/* Suspense Incoming Notification Overlay */}

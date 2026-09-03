@@ -7,13 +7,43 @@ export const StatusBarEditor: React.FC = () => {
   const { statusBar } = activeSlide;
 
   const handleUpdate = (field: string, value: any) => {
-    updateActiveSlide(slide => ({
-      ...slide,
-      statusBar: {
-        ...slide.statusBar,
-        [field]: value,
-      },
-    }));
+    updateActiveSlide(slide => {
+      let updatedWA = { ...slide.whatsapp };
+      let updatedIGDM = { ...slide.instagramDm };
+
+      // When updating time, sync with the latest chat message
+      if (field === 'time') {
+        if (updatedWA.messages && updatedWA.messages.length > 0) {
+          const msgs = updatedWA.messages.map((m, idx) => {
+            if (idx === updatedWA.messages.length - 1) {
+              return { ...m, time: value };
+            }
+            return m;
+          });
+          updatedWA.messages = msgs;
+        }
+
+        if (updatedIGDM.messages && updatedIGDM.messages.length > 0) {
+          const msgs = updatedIGDM.messages.map((m, idx) => {
+            if (idx === updatedIGDM.messages.length - 1) {
+              return { ...m, time: value };
+            }
+            return m;
+          });
+          updatedIGDM.messages = msgs;
+        }
+      }
+
+      return {
+        ...slide,
+        statusBar: {
+          ...slide.statusBar,
+          [field]: value,
+        },
+        whatsapp: updatedWA,
+        instagramDm: updatedIGDM,
+      };
+    });
   };
 
   return (
@@ -113,12 +143,12 @@ export const StatusBarEditor: React.FC = () => {
               <select
                 value={statusBar.signalType}
                 onChange={(e) => handleUpdate('signalType', e.target.value)}
-                className="w-full px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
               >
                 <option value="5G">5G</option>
-                <option value="4G">4G</option>
-                <option value="LTE">LTE</option>
-                <option value="WiFi">Wi-Fi</option>
+                <option value="4G">4G / LTE</option>
+                <option value="3G">3G</option>
+                <option value="WiFi">WiFi Saja</option>
               </select>
             </div>
 
@@ -129,8 +159,8 @@ export const StatusBarEditor: React.FC = () => {
                 type="text"
                 value={statusBar.carrier || ''}
                 onChange={(e) => handleUpdate('carrier', e.target.value)}
-                placeholder="Telkomsel"
-                className="w-full px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+                placeholder="Telkomsel, Indosat, dll"
+                className="w-full px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
               />
             </div>
           </div>

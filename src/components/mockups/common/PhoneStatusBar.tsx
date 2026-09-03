@@ -6,9 +6,10 @@ interface PhoneStatusBarProps {
   config: StatusBarConfig;
   themeMode: ThemeMode;
   isDarkPlatform?: boolean;
+  onUpdateTime?: (newTime: string) => void;
 }
 
-export const PhoneStatusBar: React.FC<PhoneStatusBarProps> = ({ config, themeMode, isDarkPlatform }) => {
+export const PhoneStatusBar: React.FC<PhoneStatusBarProps> = ({ config, themeMode, isDarkPlatform, onUpdateTime }) => {
   if (!config.show) return null;
 
   const isDark = isDarkPlatform !== undefined ? isDarkPlatform : themeMode === 'dark';
@@ -16,9 +17,17 @@ export const PhoneStatusBar: React.FC<PhoneStatusBarProps> = ({ config, themeMod
 
   return (
     <div className={`w-full px-7 pt-3 pb-2 flex items-center justify-between select-none text-[13px] font-semibold tracking-tight ${textColor} z-30 transition-colors`}>
-      {/* Left: Clock */}
+      {/* Left: Clock (Directly Editable & Synchronized with Chat) */}
       <div className="flex items-center space-x-1 font-semibold">
-        <span>{config.time}</span>
+        <span
+          contentEditable={!!onUpdateTime}
+          suppressContentEditableWarning
+          onBlur={(e) => onUpdateTime && onUpdateTime(e.currentTarget.textContent?.trim() || config.time)}
+          className={onUpdateTime ? 'cursor-text hover:opacity-80 transition-opacity' : ''}
+          title="Klik untuk mengubah jam (otomatis sinkron dengan chat)"
+        >
+          {config.time}
+        </span>
       </div>
 
       {/* Middle: Minimal Speaker / Camera Pill */}
