@@ -1,12 +1,23 @@
 import React from 'react';
 import { useStory } from '../../context/StoryContext';
-import { Hash, CheckCircle2 } from 'lucide-react';
+import { Hash, CheckCircle2, RotateCcw, Edit3 } from 'lucide-react';
 
 export const WatermarkEditor: React.FC = () => {
-  const { watermark, updateWatermark, projectTitle, setProjectTitle, currentSlideIndex, slides } = useStory();
+  const {
+    watermark,
+    updateWatermark,
+    projectTitle,
+    setProjectTitle,
+    currentSlideIndex,
+    slides,
+    activeSlide,
+    updateActiveSlide,
+  } = useStory();
 
-  const currentNum = (currentSlideIndex + 1).toString().padStart(2, '0');
-  const totalNum = slides.length.toString().padStart(2, '0');
+  const startOffset = watermark.startPageNumber ? watermark.startPageNumber - 1 : 0;
+  const currentNum = (currentSlideIndex + 1 + startOffset).toString().padStart(2, '0');
+  const totalNum = (watermark.customTotalPages || (slides.length + startOffset)).toString().padStart(2, '0');
+  const defaultPageString = `Halaman ${currentNum} / ${totalNum}`;
 
   return (
     <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3">
@@ -14,8 +25,8 @@ export const WatermarkEditor: React.FC = () => {
         <div className="flex items-center space-x-2">
           <Hash className="w-4 h-4 text-indigo-400" />
           <div>
-            <h3 className="font-bold text-sm text-slate-200">Nomor Halaman & Judul Konten (Di Luar Mockup)</h3>
-            <p className="text-[11px] text-slate-400">Menampilkan indikator urutan di bawah kanvas & penamaan file ekspor</p>
+            <h3 className="font-bold text-sm text-slate-200">Nomor Halaman & Judul Konten</h3>
+            <p className="text-[11px] text-slate-400">Dapat diedit bebas jika terjadi kesalahan urutan</p>
           </div>
         </div>
 
@@ -37,12 +48,45 @@ export const WatermarkEditor: React.FC = () => {
             <div className="flex items-center space-x-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               <span className="text-slate-300 text-[11px]">
-                Screenshot mockup tetap <strong>100% bersih dan otentik</strong> (tanpa watermark di dalam gambar).
+                Screenshot mockup tetap <strong>100% bersih</strong> (nomor halaman berada di luar gambar).
               </span>
             </div>
             <span className="font-mono font-bold text-indigo-300 px-2 py-0.5 rounded bg-indigo-950/80 border border-indigo-800/60 shrink-0 ml-2">
-              {currentNum} / {totalNum}
+              {activeSlide.customPageLabel || defaultPageString}
             </span>
+          </div>
+
+          {/* Direct Custom Page Label for this slide */}
+          <div className="p-3 rounded-xl bg-slate-950 border border-indigo-900/40 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-semibold text-slate-300 flex items-center space-x-1.5">
+                <Edit3 className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Ubah Nomor Halaman Slide Ini (Kustom):</span>
+              </label>
+              {activeSlide.customPageLabel && (
+                <button
+                  type="button"
+                  onClick={() => updateActiveSlide({ customPageLabel: undefined })}
+                  className="text-[10.5px] text-amber-400 hover:text-amber-300 flex items-center space-x-1"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Reset ke Otomatis</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={activeSlide.customPageLabel || ''}
+                onChange={(e) => updateActiveSlide({ customPageLabel: e.target.value || undefined })}
+                placeholder={`Default: ${defaultPageString}`}
+                className="flex-1 px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-mono"
+              />
+            </div>
+            <p className="text-[10.5px] text-slate-500">
+              *Anda juga bisa langsung mengklik nomor halaman di bawah bingkai HP untuk mengeditnya secara instan.
+            </p>
           </div>
 
           {/* Title Editor */}
@@ -57,11 +101,30 @@ export const WatermarkEditor: React.FC = () => {
             />
           </div>
 
-          {/* Export Filename Preview */}
-          <div className="p-2 rounded-lg bg-slate-950/60 border border-slate-800 text-[11px] text-slate-400 space-y-1">
-            <span className="font-semibold text-slate-300">Format Nama File Saat Di-download:</span>
-            <div className="font-mono text-indigo-300 text-[10.5px]">
-              slide-{currentNum}_{projectTitle.replace(/[^a-zA-Z0-9_-]/g, '_')}.png
+          {/* Advanced Page Number Offsets */}
+          <div className="grid grid-cols-2 gap-2.5 pt-1">
+            <div>
+              <label className="block text-[11px] text-slate-400 mb-1">Mulai Dari Nomor (Offset)</label>
+              <input
+                type="number"
+                min={1}
+                value={watermark.startPageNumber || 1}
+                onChange={(e) => updateWatermark({ startPageNumber: parseInt(e.target.value) || 1 })}
+                placeholder="1"
+                className="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] text-slate-400 mb-1">Total Halaman Kustom</label>
+              <input
+                type="number"
+                min={1}
+                value={watermark.customTotalPages || ''}
+                onChange={(e) => updateWatermark({ customTotalPages: parseInt(e.target.value) || undefined })}
+                placeholder={`Otomatis (${slides.length})`}
+                className="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-mono"
+              />
             </div>
           </div>
         </div>

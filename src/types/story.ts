@@ -28,6 +28,8 @@ export interface PageWatermarkConfig {
   customPrefix?: string; // e.g. "Part 1" or "Eps. 01"
   customTitle?: string; // specific content title override
   useProjectTitle: boolean; // if true, uses projectTitle
+  startPageNumber?: number; // e.g. start counting from 1, or 5, or 10
+  customTotalPages?: number; // e.g. override total count (e.g. out of 15)
   position: 'bottom_right' | 'bottom_left' | 'top_right';
   style: 'glass_dark' | 'glass_light' | 'minimal' | 'solid_dark';
 }
@@ -146,6 +148,7 @@ export interface ThreadsData {
 export interface Slide {
   id: string;
   title: string;
+  customPageLabel?: string; // Custom override for page number (e.g. "Halaman 03 / 10" or "03/10" or "Part 2 - 01")
   platform: PlatformType;
   themeMode: ThemeMode;
   statusBar: StatusBarConfig;
