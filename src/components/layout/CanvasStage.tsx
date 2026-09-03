@@ -211,14 +211,15 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
 
   return (
     <div className="flex flex-col items-center justify-center p-2 sm:p-4 w-full h-full">
-      {/* 100% Clean Phone Mockup Canvas (Inside image is pristine and authentic) */}
+      {/* 100% Clean Rectangular Canvas (Zero rounded corners, zero outer white gap for pixel-perfect export) */}
       <div
         ref={ref}
         id="storyframe-export-canvas"
-        className="relative w-full max-w-[420px] aspect-[3/4] bg-black rounded-[2.5rem] shadow-2xl overflow-hidden border-[6px] border-slate-800/80 flex flex-col transition-all select-none"
+        className="relative w-full max-w-[420px] aspect-[3/4] bg-black rounded-none shadow-2xl overflow-hidden border-0 flex flex-col transition-all select-none"
         style={{
           transform: scale !== 1 ? `scale(${scale})` : undefined,
           transformOrigin: 'top center',
+          borderRadius: 0,
         }}
       >
         {/* Phone Status Bar */}
@@ -246,14 +247,14 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
       {/* External Page Number & Content Title Bar (OUTSIDE the mockup image) */}
       <ExternalPageIndicator />
 
-      {/* Quick 1-Click Download Action Bar (Directly below phone) */}
+      {/* Quick 1-Click Download Action Bar */}
       <div className="w-full max-w-[420px] mt-2.5 grid grid-cols-2 gap-2">
         <button
           type="button"
           disabled={isExporting}
           onClick={handleQuickDownloadSingle}
           className="py-2.5 px-3 bg-emerald-600/90 hover:bg-emerald-500 border border-emerald-500/40 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-600/20 transition-all active:scale-95 disabled:opacity-50"
-          title="Download gambar slide yang sedang tampil sebagai file PNG 1080x1440 px"
+          title="Download gambar slide yang sedang tampil sebagai file PNG 1080x1440 px persegi"
         >
           {isExporting && exportType === 'single' ? (
             <>

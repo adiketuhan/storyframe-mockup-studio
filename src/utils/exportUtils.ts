@@ -10,7 +10,7 @@ export interface RenderOptions {
 }
 
 /**
- * Capture an element as a 1080x1440 PNG Blob
+ * Capture an element as a 1080x1440 PNG Blob (Sharp 90-degree square corners, no white corner artifacts)
  */
 export const captureSlideElement = async (
   element: HTMLElement,
@@ -32,6 +32,7 @@ export const captureSlideElement = async (
     cacheBust: true,
     style: {
       transform: 'none',
+      borderRadius: '0px',
     },
     filter: (node: HTMLElement) => {
       if (node.classList && node.classList.contains('no-export')) {
@@ -49,7 +50,7 @@ export const captureSlideElement = async (
 };
 
 /**
- * Download a single slide as PNG (1080x1440)
+ * Download a single slide as PNG (1080x1440, 100% rectangular bleed)
  */
 export const downloadSlidePng = async (
   element: HTMLElement,
@@ -61,52 +62,51 @@ export const downloadSlidePng = async (
     canvasHeight: 1440,
     quality: 0.98,
     cacheBust: true,
+    style: {
+      transform: 'none',
+      borderRadius: '0px',
+    },
   });
 
   saveAs(dataUrl, filename);
 };
 
 /**
- * Batch render all slides into a ZIP archive
+ * Batch export all slides into a single organized ZIP
  */
 export const batchExportZip = async (
   slides: Slide[],
-  renderSlideToBlob: (slide: Slide) => Promise<Blob>,
-  projectName: string = 'StoryFrame-Project',
+  renderSlideCallback: (slide: Slide) => Promise<Blob>,
+  projectTitle: string = 'StoryFrame-Mockup-Project',
   onProgress?: (current: number, total: number, percentage: number) => void
 ): Promise<void> => {
   const zip = new JSZip();
-  const folder = zip.folder(projectName) || zip;
+  const folderName = projectTitle.replace(/[^a-zA-Z0-9_-]/g, '_') || 'StoryFrame-Slides';
+  const folder = zip.folder(folderName) || zip;
+
   const total = slides.length;
 
   for (let i = 0; i < total; i++) {
     const slide = slides[i];
-    if (onProgress) {
-      onProgress(i + 1, total, Math.round(((i) / total) * 100));
-    }
-
-    const slideBlob = await renderSlideToBlob(slide);
     const indexStr = (i + 1).toString().padStart(2, '0');
-    const safeTitle = slide.title.replace(/[^a-zA-Z0-9_-]/g, '_') || 'slide';
-    const fileName = `slide-${indexStr}_${slide.platform}_${safeTitle}.png`;
+    const safeTitle = (slide.title || `slide-${i + 1}`).replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filename = `slide-${indexStr}_${slide.platform}_${safeTitle}.png`;
 
-    folder.file(fileName, slideBlob);
+    // Render slide element to blob
+    const blob = await renderSlideCallback(slide);
+    folder.file(filename, blob);
+
+    if (onProgress) {
+      const percent = Math.round(((i + 1) / total) * 100);
+      onProgress(i + 1, total, percent);
+    }
   }
 
-  if (onProgress) {
-    onProgress(total, total, 99);
-  }
-
-  const zipContent = await zip.generateAsync({
+  const content = await zip.generateAsync({
     type: 'blob',
     compression: 'DEFLATE',
-    compressionOptions: { level: 6 }
+    compressionOptions: { level: 9 },
   });
 
-  if (onProgress) {
-    onProgress(total, total, 100);
-  }
-
-  const dateStr = new Date().toISOString().slice(0, 10);
-  saveAs(zipContent, `${projectName}_${dateStr}.zip`);
+  saveAs(content, `${folderName}.zip`);
 };
