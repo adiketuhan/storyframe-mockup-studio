@@ -14,7 +14,7 @@ const createSoundHoregCharacters = (): Character[] => [
     id: 'char-sound',
     name: 'TukangSoun galek',
     handle: 'reneosound',
-    avatar: PRESET_AVATARS.soundEngineer || PRESET_AVATARS.detective,
+    avatar: PRESET_AVATARS.detective,
     roleLabel: 'Rental Sound (Lawan)',
     colorTag: 'indigo',
     verified: false,
