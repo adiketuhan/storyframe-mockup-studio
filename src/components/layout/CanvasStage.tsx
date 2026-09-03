@@ -9,7 +9,7 @@ import { TwitterMockup } from '../mockups/twitter/TwitterMockup';
 import { InstagramFeedMockup } from '../mockups/instagram-feed/InstagramFeedMockup';
 import { ThreadsMockup } from '../mockups/threads/ThreadsMockup';
 import { downloadSlidePng, batchExportZip, captureSlideElement } from '../../utils/exportUtils';
-import { Download, FileArchive, Loader2 } from 'lucide-react';
+import { Download, FileArchive, Loader2, Plus, Mic, ShieldAlert, Sparkles, HelpCircle } from 'lucide-react';
 import type { WAMessage, IGDMMessage } from '../../types/story';
 
 interface CanvasStageProps {
@@ -20,6 +20,7 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
   const { activeSlide, updateActiveSlide, slides, projectTitle, setActiveSlideId, currentSlideIndex } = useStory();
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [exportType, setExportType] = useState<'single' | 'zip' | null>(null);
+  const [showTips, setShowTips] = useState<boolean>(false);
 
   if (!activeSlide) return null;
 
@@ -109,6 +110,65 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
         [field]: value,
       },
     }));
+  };
+
+  // Quick Direct Add Message to Active Chat
+  const handleQuickAddWAMessage = (sender: 'them' | 'me', type: 'text' | 'voice' = 'text') => {
+    if (activeSlide.platform === 'whatsapp') {
+      const newMsg: WAMessage = {
+        id: `m-${Date.now()}`,
+        sender,
+        type,
+        text: type === 'voice' ? 'Voice Message' : sender === 'them' ? 'Pesan baru dari lawan...' : 'Pesan balasan saya...',
+        time: activeSlide.statusBar.time,
+        status: 'read',
+        voiceDuration: type === 'voice' ? '0:14' : undefined,
+      };
+
+      updateActiveSlide(slide => ({
+        ...slide,
+        whatsapp: {
+          ...slide.whatsapp,
+          messages: [...slide.whatsapp.messages, newMsg],
+        },
+      }));
+    } else if (activeSlide.platform === 'instagram-dm') {
+      const newMsg: IGDMMessage = {
+        id: `ig-${Date.now()}`,
+        sender,
+        type: 'text',
+        text: sender === 'them' ? 'Pesan baru dari lawan...' : 'Pesan balasan saya...',
+        time: activeSlide.statusBar.time,
+      };
+
+      updateActiveSlide(slide => ({
+        ...slide,
+        instagramDm: {
+          ...slide.instagramDm,
+          messages: [...slide.instagramDm.messages, newMsg],
+        },
+      }));
+    }
+  };
+
+  const handleToggleBlock = () => {
+    if (activeSlide.platform === 'whatsapp') {
+      updateActiveSlide(slide => ({
+        ...slide,
+        whatsapp: {
+          ...slide.whatsapp,
+          isBlocked: !slide.whatsapp.isBlocked,
+        },
+      }));
+    } else if (activeSlide.platform === 'instagram-dm') {
+      updateActiveSlide(slide => ({
+        ...slide,
+        instagramDm: {
+          ...slide.instagramDm,
+          isBlocked: !slide.instagramDm.isBlocked,
+        },
+      }));
+    }
   };
 
   const handleQuickDownloadSingle = async () => {
@@ -211,6 +271,37 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
 
   return (
     <div className="flex flex-col items-center justify-center p-2 sm:p-4 w-full h-full">
+      {/* 3-Step Guided Workflow Banner for Beginners */}
+      <div className="w-full max-w-[420px] mb-2.5 px-3 py-2 rounded-2xl bg-slate-900/90 border border-slate-800 text-[11px] text-slate-300 flex items-center justify-between shadow-md">
+        <div className="flex items-center space-x-1.5 truncate">
+          <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span className="font-semibold text-slate-200 truncate">
+            Alur: 1. Naskah/Pemeran ➔ 2. Edit Layar ➔ 3. Unduh
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowTips(!showTips)}
+          className="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold flex items-center space-x-0.5 shrink-0 ml-1.5"
+        >
+          <HelpCircle className="w-3 h-3" />
+          <span>{showTips ? 'Tutup' : 'Tips'}</span>
+        </button>
+      </div>
+
+      {showTips && (
+        <div className="w-full max-w-[420px] mb-2.5 p-3 rounded-2xl bg-indigo-950/70 border border-indigo-800/80 text-xs text-indigo-200 space-y-1.5 animate-fade-in">
+          <p className="font-bold text-slate-100 flex items-center space-x-1">
+            <span>💡 Tips Mudah untuk Pemula:</span>
+          </p>
+          <ul className="list-disc list-inside space-y-1 text-[11px] text-indigo-200/90">
+            <li><strong>Klik langsung teks di layar HP</strong> (nama kontak, pesan, jam) untuk mengetik.</li>
+            <li>Gunakan tombol <strong>+ Masuk (Kiri)</strong> atau <strong>+ Keluar (Kanan)</strong> di bawah HP untuk menambah balon chat secara instan.</li>
+            <li>Klik tombol hijau <strong>Unduh Slide Ini (PNG)</strong> jika gambar sudah selesai.</li>
+          </ul>
+        </div>
+      )}
+
       {/* 100% Clean Rectangular Canvas (Zero rounded corners, zero outer white gap for pixel-perfect export) */}
       <div
         ref={ref}
@@ -247,13 +338,65 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
       {/* External Page Number & Content Title Bar (OUTSIDE the mockup image) */}
       <ExternalPageIndicator />
 
+      {/* Quick In-Context Chat Tools (for WhatsApp & IG DM) */}
+      {(activeSlide.platform === 'whatsapp' || activeSlide.platform === 'instagram-dm') && (
+        <div className="w-full max-w-[420px] mt-2 flex items-center justify-between gap-1.5 p-1.5 bg-slate-900/90 border border-slate-800 rounded-2xl">
+          <button
+            type="button"
+            onClick={() => handleQuickAddWAMessage('them', 'text')}
+            className="flex-1 py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-[11px] font-semibold flex items-center justify-center space-x-1 transition-all active:scale-95"
+            title="Tambah balon chat dari lawan bicara (sebelah kiri)"
+          >
+            <Plus className="w-3 h-3 text-emerald-400" />
+            <span>+ Kiri (Lawan)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleQuickAddWAMessage('me', 'text')}
+            className="flex-1 py-1.5 px-2 bg-emerald-950/80 hover:bg-emerald-900/80 border border-emerald-800/60 text-emerald-200 rounded-xl text-[11px] font-semibold flex items-center justify-center space-x-1 transition-all active:scale-95"
+            title="Tambah balon chat dari saya (sebelah kanan)"
+          >
+            <Plus className="w-3 h-3 text-emerald-400" />
+            <span>+ Kanan (Saya)</span>
+          </button>
+
+          {activeSlide.platform === 'whatsapp' && (
+            <button
+              type="button"
+              onClick={() => handleQuickAddWAMessage('me', 'voice')}
+              className="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl text-[11px] font-semibold flex items-center justify-center space-x-1 transition-all active:scale-95"
+              title="Tambah Voice Note"
+            >
+              <Mic className="w-3 h-3 text-amber-400" />
+              <span>+ VN</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleToggleBlock}
+            className={`py-1.5 px-2 rounded-xl text-[11px] font-semibold flex items-center justify-center space-x-1 transition-all active:scale-95 ${
+              (activeSlide.platform === 'whatsapp' && activeSlide.whatsapp.isBlocked) ||
+              (activeSlide.platform === 'instagram-dm' && activeSlide.instagramDm.isBlocked)
+                ? 'bg-rose-600 text-white'
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
+            }`}
+            title="Toggle status blokir kontak"
+          >
+            <ShieldAlert className="w-3 h-3 text-rose-400" />
+            <span>Blokir</span>
+          </button>
+        </div>
+      )}
+
       {/* Quick 1-Click Download Action Bar */}
-      <div className="w-full max-w-[420px] mt-2.5 grid grid-cols-2 gap-2">
+      <div className="w-full max-w-[420px] mt-2 grid grid-cols-2 gap-2">
         <button
           type="button"
           disabled={isExporting}
           onClick={handleQuickDownloadSingle}
-          className="py-2.5 px-3 bg-emerald-600/90 hover:bg-emerald-500 border border-emerald-500/40 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-600/20 transition-all active:scale-95 disabled:opacity-50"
+          className="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 border border-emerald-500/40 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-600/20 transition-all active:scale-95 disabled:opacity-50"
           title="Download gambar slide yang sedang tampil sebagai file PNG 1080x1440 px persegi"
         >
           {isExporting && exportType === 'single' ? (

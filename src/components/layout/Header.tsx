@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { useStory } from '../../context/StoryContext';
 import type { PlatformType } from '../../types/story';
-import { Moon, Sun, RotateCcw, Layers, FileCode, Save, FolderOpen, CheckCircle2, ChevronDown } from 'lucide-react';
+import { Moon, Sun, Layers, FileCode, Save, FolderOpen, CheckCircle2, ChevronDown, PlusCircle } from 'lucide-react';
 import { TwitterIcon, InstagramIcon, WhatsAppIcon } from '../common/BrandIcons';
 import { ScriptParserModal } from '../parser/ScriptParserModal';
+import { NewProjectModal } from '../modals/NewProjectModal';
 
 export const Header: React.FC = () => {
   const {
@@ -11,7 +12,6 @@ export const Header: React.FC = () => {
     setProjectTitle,
     activeSlide,
     updateActiveSlide,
-    resetProject,
     slides,
     currentSlideIndex,
     lastSavedTime,
@@ -19,6 +19,7 @@ export const Header: React.FC = () => {
     importProjectFromJson,
   } = useStory();
 
+  const [showNewProjectModal, setShowNewProjectModal] = useState<boolean>(false);
   const [showScriptModal, setShowScriptModal] = useState<boolean>(false);
   const [showProjectMenu, setShowProjectMenu] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -80,12 +81,22 @@ export const Header: React.FC = () => {
               </div>
             </div>
 
-            {/* Mobile Actions: Script Generator, Slide Indicator & Theme */}
+            {/* Mobile Actions: New Project, Script Generator & Theme */}
             <div className="flex items-center space-x-1.5 md:hidden">
               <button
                 type="button"
+                onClick={() => setShowNewProjectModal(true)}
+                className="py-1 px-2 rounded-lg bg-indigo-600/30 border border-indigo-500/50 text-indigo-300 text-xs font-bold flex items-center space-x-1"
+                title="Mulai Proyek Baru / Reset"
+              >
+                <PlusCircle className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Baru</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setShowScriptModal(true)}
-                className="py-1 px-2 rounded-lg bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 text-xs font-bold flex items-center space-x-1"
+                className="py-1 px-2 rounded-lg bg-purple-600/30 border border-purple-500/50 text-purple-300 text-xs font-bold flex items-center space-x-1"
                 title="Tulis Naskah Teks (Regex Parser)"
               >
                 <FileCode className="w-3.5 h-3.5" />
@@ -191,8 +202,30 @@ export const Header: React.FC = () => {
             </button>
           </div>
 
-          {/* Right Controls: Regex Script Studio Button, Project Backup, Theme & Reset */}
+          {/* Right Controls: New Project, Script Studio, Project Backup & Theme */}
           <div className="hidden md:flex items-center space-x-2">
+            {/* New Project / Reset Button */}
+            <button
+              type="button"
+              onClick={() => setShowNewProjectModal(true)}
+              className="py-1.5 px-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold flex items-center space-x-1.5 shadow-md shadow-indigo-600/20 transition-all active:scale-95"
+              title="Mulai proyek cerita baru atau reset kanvas"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>Proyek Baru</span>
+            </button>
+
+            {/* Script-to-Story Studio button */}
+            <button
+              type="button"
+              onClick={() => setShowScriptModal(true)}
+              className="py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold flex items-center space-x-1.5 transition-all active:scale-95"
+              title="Tulis naskah teks cerita dan buat slide secara instan dengan regex"
+            >
+              <FileCode className="w-4 h-4 text-purple-400" />
+              <span>Tulis Naskah</span>
+            </button>
+
             {/* Project Backup & Restore Dropdown */}
             <div className="relative">
               <button
@@ -250,17 +283,6 @@ export const Header: React.FC = () => {
               )}
             </div>
 
-            {/* Script-to-Story Studio button */}
-            <button
-              type="button"
-              onClick={() => setShowScriptModal(true)}
-              className="py-1.5 px-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold flex items-center space-x-1.5 shadow-md shadow-indigo-600/20 transition-all active:scale-95"
-              title="Tulis naskah teks cerita dan buat slide secara instan dengan regex"
-            >
-              <FileCode className="w-4 h-4" />
-              <span>Tulis Naskah (Regex)</span>
-            </button>
-
             <button
               type="button"
               onClick={handleToggleTheme}
@@ -269,18 +291,16 @@ export const Header: React.FC = () => {
             >
               {activeSlide.themeMode === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-300" />}
             </button>
-
-            <button
-              type="button"
-              onClick={resetProject}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-red-300 transition-colors"
-              title="Reset ke Cerita Awal"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
           </div>
         </div>
       </header>
+
+      {/* New Project / Reset Modal */}
+      <NewProjectModal
+        isOpen={showNewProjectModal}
+        onClose={() => setShowNewProjectModal(false)}
+        onOpenScriptModal={() => setShowScriptModal(true)}
+      />
 
       {/* Script Parser Modal */}
       <ScriptParserModal
