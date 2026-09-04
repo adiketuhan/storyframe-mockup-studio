@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useStory } from '../../context/StoryContext';
 import { Edit3, Film, Download, Users } from 'lucide-react';
 import { WAEditor } from '../editors/whatsapp/WAEditor';
+import { WhatsAppStatusEditor } from '../editors/whatsapp/WhatsAppStatusEditor';
+import { TitleCardEditor } from '../editors/cards/TitleCardEditor';
+import { TransitionCardEditor } from '../editors/cards/TransitionCardEditor';
 import { InstagramDMEditor } from '../editors/instagram-dm/InstagramDMEditor';
 import { TwitterEditor } from '../editors/twitter/TwitterEditor';
 import { InstagramFeedEditor } from '../editors/instagram-feed/InstagramFeedEditor';
@@ -20,6 +23,12 @@ export const EditorDrawer: React.FC = () => {
     switch (activeSlide.platform) {
       case 'whatsapp':
         return <WAEditor />;
+      case 'whatsapp-status':
+        return <WhatsAppStatusEditor />;
+      case 'title-card':
+        return <TitleCardEditor />;
+      case 'transition-card':
+        return <TransitionCardEditor />;
       case 'instagram-dm':
         return <InstagramDMEditor />;
       case 'twitter':

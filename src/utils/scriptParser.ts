@@ -1,4 +1,4 @@
-import type { Slide, PlatformType, WAMessage, Character } from '../types/story';
+import type { Slide, PlatformType, WAMessage, Character, TitleCardData, TransitionCardData, WhatsAppStatusData } from '../types/story';
 import { PRESET_AVATARS, PRESET_MEDIA } from './imageUtils';
 import { incrementTimeString } from './timeUtils';
 
@@ -11,40 +11,41 @@ export interface ParsedStoryResult {
 export const SAMPLE_SCRIPT_TEMPLATE = `Pemeran 1  "TukangSoun galek" @reneosound
 pemeran2 "Mas Jagad" @imutnyojag4d
 
-Scene 1 (wa)
+Scene 1 (cover)
+[JUDUL]: Rental Sound Berujung Drama Horeg
+[SUBTITLE]: Kisah nyata pesanan sound hajatan yang mendadak penuh misteri dan pembatalan sepihak...
+[BADGE]: KISAH NYATA • VIRAL
+
+Scene 2 (wa)
 Selamat pagi mas
-mau tanya tentang sewa sound
+mau tanya tentang sewa sound untuk tanggal 12 bulan depan
 
 pagi juga mas
-ada yang bisa saya bantu?
+bisa banget mas, ada yang bisa saya bantu untuk speknya?
 
-scene 2 (wa)
-jadi gini mas saya mau sewa soun untuk nikahan apa bisa?
-bisa banget mas, untuk tanggal berapa?
-
-scene 3 (twitter)
+Scene 3 (twitter)
 Alhamdulillah akhirnya ada yang mau menggenapi list jadwal horeg, semoga bisa lekas budal umroh #rezeki
 
-scene 4 (thread)
-akhirnya nemu Tukang sound yang humble serta responsip, semoga bisa deal sampai hari H
+Scene 4 (wa status)
+Alhamdulillah deal satu jadwal lagi untuk hajatan bulan depan. Berkah lancar jaya! 🤲🔊
 
-scene 5 (wa)
-vn
-siap mas, kalua masalah DP bisa kita bicarakan nantinya, yang penting speknya bisa dipahami terlebih dahulu
-oiya itu untuk inddor atau aoutdoor ya mas?
+Scene 5 (thread)
+akhirnya nemu Tukang sound yang humble serta responsip, semoga bisa deal aman sampai hari H
 
 Scene 6 (wa)
 vn
-hehhe kalua itu terserah dari yang tuan rumah mas, kami speknya komplit, mau indoor atau outdorr gasss pokoknya
-tapi anu mas duh gimana ya.....
+siap mas, kalau masalah DP bisa kita bicarakan nantinya, yang penting speknya bisa dipahami terlebih dahulu
+oiya itu untuk indoor atau outdoor ya mas?
 
-Scene 7 (twitter)
-waduh kok ada kata "tapi" nya, wah perasaaanku mulai ndak enak nih...
+Scene 7 (jeda)
+[TIMESKIP]: 3 HARI MENJELANG H-1...
+[WAKTU]: Pukul 19:45 WIB
+Keesokan harinya, Mas Jagad mendapat kabar mengejutkan saat sedang mengecek lokasi panggung...
 
 Scene 8 (wa)
 (deleted)
-anu mas, tanggal segitu genset utama kami lagi disewa acara karnaval desa sebelah...
-waduh terus gimana mas solusinya??
+anu mas, tanggal segitu genset utama kami lagi ditarik acara karnaval desa sebelah...
+waduh terus gimana mas solusinya?? panggung udah berdiri!
 
 Scene 9 (wa)
 [BLOKIR]: Anda telah memblokir kontak ini. Ketuk untuk membuka blokir.
@@ -52,46 +53,48 @@ THEM: maaf mas kami cancel sepihak yaa
 ME: (system: 🔒 Kontak ini telah diblokir.)
 
 Scene 10 (thread)
-duh pelajaran hari ini, cari vendor itu harus yang fix dari awal, jangan kena PHP h-seminggu gini wkwk. Tetap sabar dan ikhlas!
+duh pelajaran mahal hari ini, cari vendor sound itu harus yang berani teken kontrak, jangan kena PHP h-seminggu gini wkwk. Tetap sabar dan ikhlas!
 `;
 
-export const AI_MASTER_PROMPT_10_SCENES = `Tolong buatkan naskah cerita bergambar (storyboard carousel) 10 Scene yang viral, seru, dan emosional dalam format teks baku di bawah ini.
+export const AI_MASTER_PROMPT_10_SCENES = `Tolong buatkan naskah cerita bergambar (storyboard carousel) 10 Scene yang viral, seru, dramatis, dan emosional dalam format teks baku di bawah ini.
 
 FORMAT WAJIB YANG HARUS DIIKUTI (JANGAN UBAH STRUKTUR KATA KUNCI):
 Pemeran 1 "[Nama Lawan Bicara]" @[handle1]
 Pemeran 2 "[Nama Tokoh Utama (Saya)]" @[handle2]
 
-Scene 1 (wa)
-[Pesan pembuka / sapaan dari Pemeran 1]
-
-[Balasan dari Pemeran 2]
+Scene 1 (cover)
+[JUDUL]: [Judul Utama Cerita yang Memancing Rasa Penasaran / Clickbait Elegan]
+[SUBTITLE]: [Sinopsis singkat 1-2 kalimat pengantar cerita]
+[BADGE]: KISAH NYATA • PART 1
 
 Scene 2 (wa)
-[Kelanjutan obrolan yang mulai mendalam]
-[Tanggapan / penawaran]
+[Pesan pembuka / sapaan awal dari Pemeran 1]
+
+[Balasan awal dari Pemeran 2]
 
 Scene 3 (twitter)
-[Tweet curhatan singkat / reaksi sudut pandang Pemeran 1 di X/Twitter]
+[Tweet reaksi / sudut pandang awal di X/Twitter]
 
-Scene 4 (thread)
-[Utas cerita opini / latar belakang dari Pemeran 2 di Threads]
+Scene 4 (wa status)
+[Status WhatsApp singkat yang berkaitan dengan alur cerita]
 
-Scene 5 (wa)
-vn
-[Pesan penjelasan suara (Voice Note) dan obrolan detail]
+Scene 5 (thread)
+[Utas opini / curhatan latar belakang dari Pemeran 2 di Threads]
 
 Scene 6 (wa)
 vn
-[Mulai muncul kejanggalan / drama / alasan aneh]
-[Pernyataan yang memancing kecurigaan]
+[Pesan penjelasan suara (Voice Note) dan obrolan detail]
+[Pertanyaan penting lanjutan]
 
-Scene 7 (twitter)
-[Tweet rasa panik / curiga / kekesalan dari Pemeran 2]
+Scene 7 (jeda)
+[TIMESKIP]: 3 HARI KEMUDIAN...
+[WAKTU]: Pukul 21:15 WIB
+[Narasi jembatan cerita yang membangun ketegangan / perubahan situasi]
 
 Scene 8 (wa)
 (deleted)
-[Pesan dihapus dan puncak konflik / alasan pembatalan / pengakuan]
-[Reaksi terkejut]
+[Pesan dihapus dan alasan pembatalan / puncak kejanggalan]
+[Reaksi terkejut dari tokoh utama]
 
 Scene 9 (wa)
 [BLOKIR]: Anda telah memblokir kontak ini. Ketuk untuk membuka blokir.
@@ -102,7 +105,15 @@ Scene 10 (thread)
 [Kesimpulan akhir cerita, hikmah / punchline penutup yang mengundang interaksi di Threads]
 
 ---
-Tema Cerita: [Tuliskan tema yang diinginkan, misal: Drama Rental Sound / Mantan Ngajak Balikan / Pelanggan Olshop Absurd / Horor Villa Angker]`;
+Tema Cerita: [Tuliskan tema yang diinginkan, misal: Drama Rental Sound / Mantan Ngajak Balikan / Pelanggan Olshop Absurd / Horor Villa Angker / Tetangga Julid]`;
+
+/**
+ * Helper to advance time realistically by random dynamic minutes
+ */
+function advanceTimeRandomly(timeStr: string, minMinutes: number, maxMinutes: number): string {
+  const delta = Math.floor(Math.random() * (maxMinutes - minMinutes + 1)) + minMinutes;
+  return incrementTimeString(timeStr, Math.max(1, delta));
+}
 
 /**
  * Universal Regex & Natural Language Script Parser
@@ -113,7 +124,6 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
   const lines = rawScript.split(/\r?\n/);
   
   let projectTitle = 'Cerita StoryFrame';
-  let defaultStartTime = '09:00';
   const detectedCharactersMap = new Map<string, Character>();
   const parsedCharactersList: Character[] = [];
 
@@ -195,8 +205,8 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
     const rawLine = lines[i];
     const trimmed = rawLine.trim();
 
-    // Check Scene Header: e.g. "Scene 1 (wa)", "scene 2 (twitter)", "Scene 3 (thread)", "[SLIDE 1 - WHATSAPP]"
-    const sceneMatch = trimmed.match(/^(?:(?:scene|slide|bagian|part)\s*(\d+)?\s*(?:\(([^)]+)\)|-\s*([A-Za-z0-9_]+))?|\[SLIDE\s*(\d+)?\s*(?:-\s*([A-Za-z0-9_]+))?\])/i);
+    // Check Scene Header: e.g. "Scene 1 (cover)", "Scene 2 (wa)", "Scene 4 (wa status)", "Scene 7 (jeda)", "scene 3 (twitter)", "[SLIDE 1 - WA]"
+    const sceneMatch = trimmed.match(/^(?:(?:scene|slide|bagian|part)\s*(\d+)?\s*(?:\(([^)]+)\)|-\s*([A-Za-z0-9_ -]+))?|\[SLIDE\s*(\d+)?\s*(?:-\s*([A-Za-z0-9_ -]+))?\])/i);
 
     if (sceneMatch) {
       const numStr = sceneMatch[1] || sceneMatch[4];
@@ -205,7 +215,13 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
       slideCounter = Math.max(slideCounter, slideNum) + 1;
 
       let platform: PlatformType = 'whatsapp';
-      if (platformRaw.includes('twitter') || platformRaw.includes('tweet') || platformRaw.includes(' x') || platformRaw === 'x') {
+      if (platformRaw.includes('cover') || platformRaw.includes('judul') || platformRaw.includes('title') || platformRaw.includes('opening')) {
+        platform = 'title-card';
+      } else if (platformRaw.includes('status') || platformRaw.includes('sw') || platformRaw.includes('wa-status') || platformRaw.includes('story')) {
+        platform = 'whatsapp-status';
+      } else if (platformRaw.includes('jeda') || platformRaw.includes('narasi') || platformRaw.includes('timeskip') || platformRaw.includes('time-skip') || platformRaw.includes('transisi') || platformRaw.includes('transition') || platformRaw.includes('break')) {
+        platform = 'transition-card';
+      } else if (platformRaw.includes('twitter') || platformRaw.includes('tweet') || platformRaw.includes(' x') || platformRaw === 'x') {
         platform = 'twitter';
       } else if (platformRaw.includes('thread')) {
         platform = 'threads';
@@ -239,9 +255,9 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
     sceneChunks.push(currentChunk);
   }
 
-  // Phase 3: Build Slides from Scene Chunks
+  // Phase 3: Build Slides from Scene Chunks with Realistic Dynamic Time
   const slides: Slide[] = [];
-  let currentTime = defaultStartTime;
+  let currentTime = '09:00';
 
   if (sceneChunks.length > 0) {
     projectTitle = `Cerita ${charThem.name} & ${charMe.name}`;
@@ -251,10 +267,62 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
       const slideId = `slide-${chunk.slideNumber || (sIdx + 1)}`;
       const slideTitle = `Slide ${chunk.slideNumber || (sIdx + 1)}`;
 
-      // Time progression per scene
+      // Realistic Dynamic Time Progression between Scenes
       if (sIdx > 0) {
-        currentTime = incrementTimeString(currentTime, 2);
+        const prevPlatform = sceneChunks[sIdx - 1].platform;
+        if (chunk.platform === 'transition-card') {
+          currentTime = advanceTimeRandomly(currentTime, 15, 45);
+        } else if (chunk.platform === 'twitter' || chunk.platform === 'threads' || chunk.platform === 'whatsapp-status' || chunk.platform === 'instagram-feed') {
+          currentTime = advanceTimeRandomly(currentTime, 8, 25);
+        } else if (prevPlatform === 'whatsapp' && chunk.platform === 'whatsapp') {
+          currentTime = advanceTimeRandomly(currentTime, 2, 5);
+        } else {
+          currentTime = advanceTimeRandomly(currentTime, 4, 12);
+        }
       }
+
+      // Check explicit time tag in chunk lines
+      for (const l of chunk.lines) {
+        const timeMatch = l.match(/^\[(?:WAKTU|JAM|TIME)\]\s*:\s*(?:pukul\s*)?(\d{1,2}[:.]\d{2})/i);
+        if (timeMatch) {
+          currentTime = timeMatch[1].replace('.', ':').padStart(5, '0');
+          break;
+        }
+      }
+
+      // Realistic battery drain
+      const batteryLevel = Math.max(12, Math.min(98, 92 - sIdx * 3 - Math.floor(Math.random() * 2)));
+
+      // Default Title Card Data
+      const defaultTitleCard: TitleCardData = {
+        mainTitle: `Cerita ${charThem.name}`,
+        subtitle: 'Kisah nyata yang tak terduga...',
+        badgeText: 'KISAH NYATA • PART 1',
+        callToAction: 'Geser ke kanan untuk membaca ➔',
+        themeStyle: 'cinematic_dark',
+      };
+
+      // Default Transition Card Data
+      const defaultTransitionCard: TransitionCardData = {
+        timeSkipTitle: 'BEBERAPA SAAT KEMUDIAN...',
+        timeBadge: `Pukul ${currentTime} WIB`,
+        narrationText: 'Suasana semakin tegang saat kejanggalan mulai terungkap...',
+        themeStyle: 'dark_suspense',
+      };
+
+      // Default WhatsApp Status Data
+      const defaultWhatsAppStatus: WhatsAppStatusData = {
+        contactName: charThem.name,
+        avatar: charThem.avatar,
+        timestamp: `${currentTime}`,
+        statusType: 'text',
+        text: 'Ada yang seru hari ini... pantau terus!',
+        backgroundColor: '#075E54',
+        fontStyle: 'sans',
+        activeSegmentIndex: 0,
+        totalSegments: 3,
+        characterId: charThem.id,
+      };
 
       const slide: Slide = {
         id: slideId,
@@ -264,7 +332,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
         statusBar: {
           show: true,
           time: currentTime,
-          batteryLevel: Math.max(10, 88 - sIdx * 2),
+          batteryLevel,
           isCharging: false,
           signalType: '5G',
           carrier: 'Telkomsel',
@@ -285,6 +353,9 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
           characterId: charThem.id,
           messages: [],
         },
+        whatsappStatus: defaultWhatsAppStatus,
+        titleCard: defaultTitleCard,
+        transitionCard: defaultTransitionCard,
         instagramDm: {
           contactName: charThem.name,
           handle: charThem.handle,
@@ -304,11 +375,11 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
           text: '',
           device: 'Twitter for iPhone',
           timestamp: `${currentTime} · Hari Ini`,
-          viewsCount: '1.2K',
-          repostsCount: '45',
-          quotesCount: '12',
-          likesCount: '340',
-          bookmarksCount: '89',
+          viewsCount: `${Math.floor(Math.random() * 40 + 10)}.${Math.floor(Math.random() * 9)}K`,
+          repostsCount: `${Math.floor(Math.random() * 300 + 40)}`,
+          quotesCount: `${Math.floor(Math.random() * 50 + 10)}`,
+          likesCount: `${Math.floor(Math.random() * 3 + 1)}.${Math.floor(Math.random() * 9)}K`,
+          bookmarksCount: `${Math.floor(Math.random() * 120 + 20)}`,
         },
         instagramFeed: {
           authorName: charThem.handle,
@@ -318,7 +389,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
           characterId: charThem.id,
           mediaUrl: PRESET_MEDIA.abandonedHouse,
           isLiked: false,
-          likesCount: '320 suka',
+          likesCount: `${Math.floor(Math.random() * 800 + 150)} suka`,
           caption: '',
           timestamp: '1 JAM YANG LALU',
         },
@@ -330,18 +401,78 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
           characterId: charMe.id,
           text: '',
           timestamp: '2m',
-          likesCount: '84',
-          repliesCount: '12',
-          repostsCount: '4',
+          likesCount: `${Math.floor(Math.random() * 150 + 30)}`,
+          repliesCount: `${Math.floor(Math.random() * 25 + 5)}`,
+          repostsCount: `${Math.floor(Math.random() * 10 + 2)}`,
           hasReply: false,
         },
       };
 
-      // Process content inside chunk
-      if (chunk.platform === 'whatsapp' || chunk.platform === 'instagram-dm') {
+      // Format-Specific Parsers
+      if (chunk.platform === 'title-card') {
+        let mainTitle = '';
+        let subtitle = '';
+        let badgeText = 'KISAH NYATA • PART 1';
+        let callToAction = 'Geser ke kanan untuk membaca ➔';
+
+        const rawLines = chunk.lines.map(l => l.trim()).filter(Boolean);
+        for (const l of rawLines) {
+          if (/^\[JUDUL\]|^\[TITLE\]/i.test(l)) {
+            mainTitle = l.replace(/^\[(?:JUDUL|TITLE)\]\s*:\s*/i, '').trim();
+          } else if (/^\[SUBTITLE\]|^\[SUB\]/i.test(l)) {
+            subtitle = l.replace(/^\[(?:SUBTITLE|SUB)\]\s*:\s*/i, '').trim();
+          } else if (/^\[BADGE\]|^\[KATEGORI\]/i.test(l)) {
+            badgeText = l.replace(/^\[(?:BADGE|KATEGORI)\]\s*:\s*/i, '').trim();
+          } else if (/^\[CTA\]|^\[ACTION\]/i.test(l)) {
+            callToAction = l.replace(/^\[(?:CTA|ACTION)\]\s*:\s*/i, '').trim();
+          } else if (!mainTitle) {
+            mainTitle = l;
+          } else if (!subtitle) {
+            subtitle = l;
+          }
+        }
+
+        if (mainTitle) {
+          slide.titleCard.mainTitle = mainTitle;
+          projectTitle = mainTitle; // Update project title from cover
+        }
+        if (subtitle) slide.titleCard.subtitle = subtitle;
+        if (badgeText) slide.titleCard.badgeText = badgeText;
+        if (callToAction) slide.titleCard.callToAction = callToAction;
+      } else if (chunk.platform === 'transition-card') {
+        let timeSkipTitle = '3 HARI KEMUDIAN...';
+        let timeBadge = `Pukul ${currentTime} WIB`;
+        const narrationLines: string[] = [];
+
+        for (const line of chunk.lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+
+          if (/^\[TIMESKIP\]|^\[JEDA\]|^\[WAKTU_SKIP\]/i.test(trimmed)) {
+            timeSkipTitle = trimmed.replace(/^\[(?:TIMESKIP|JEDA|WAKTU_SKIP)\]\s*:\s*/i, '').trim();
+          } else if (/^\[WAKTU\]|^\[JAM\]/i.test(trimmed)) {
+            timeBadge = trimmed.replace(/^\[(?:WAKTU|JAM)\]\s*:\s*/i, '').trim();
+          } else if (trimmed.toUpperCase() === trimmed && (trimmed.includes('KEMUDIAN') || trimmed.includes('HARI') || trimmed.includes('MALAM') || trimmed.includes('PAGI') || trimmed.includes('SAAT'))) {
+            timeSkipTitle = trimmed;
+          } else {
+            narrationLines.push(trimmed);
+          }
+        }
+
+        slide.transitionCard.timeSkipTitle = timeSkipTitle;
+        slide.transitionCard.timeBadge = timeBadge;
+        slide.transitionCard.narrationText = narrationLines.join('\n') || 'Situasi semakin tidak terduga di obrolan berikutnya...';
+      } else if (chunk.platform === 'whatsapp-status') {
+        const bodyText = chunk.lines.map(l => l.trim()).filter(Boolean).join('\n');
+        slide.whatsappStatus.text = bodyText || 'Story WhatsApp terbaru...';
+        slide.whatsappStatus.timestamp = `${currentTime}`;
+        slide.whatsappStatus.contactName = charThem.name;
+        slide.whatsappStatus.avatar = charThem.avatar;
+      } else if (chunk.platform === 'whatsapp' || chunk.platform === 'instagram-dm') {
         const messages: WAMessage[] = [];
         let currentSpeaker: 'them' | 'me' = 'them';
         let currentParagraphLines: string[] = [];
+        let msgTime = currentTime;
 
         const flushParagraph = () => {
           if (currentParagraphLines.length === 0) return;
@@ -361,12 +492,17 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
           }
 
           if (fullText) {
+            // Incremental realistic dynamic chat time (+1 to +2 min per exchange)
+            if (messages.length > 0) {
+              msgTime = incrementTimeString(msgTime, Math.random() > 0.4 ? 1 : 2);
+            }
+
             messages.push({
               id: `m-${messages.length + 1}-${Date.now()}`,
               sender: currentSpeaker,
               type: msgType,
               text: fullText,
-              time: currentTime,
+              time: msgTime,
               status: 'read',
               voiceDuration: msgType === 'voice' ? '0:14' : undefined,
             });
@@ -418,10 +554,14 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
             sender: 'them',
             type: 'text',
             text: '...',
-            time: currentTime,
+            time: msgTime,
             status: 'read',
           });
         }
+
+        // Update current time to latest message time
+        currentTime = msgTime;
+        slide.statusBar.time = currentTime;
 
         slide.whatsapp.messages = messages;
         slide.instagramDm.messages = messages.map(m => ({

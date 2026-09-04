@@ -4,13 +4,16 @@ import { PhoneStatusBar } from '../mockups/common/PhoneStatusBar';
 import { IncomingNotification } from '../mockups/common/IncomingNotification';
 import { ExternalPageIndicator } from '../mockups/common/PageNumberWatermark';
 import { WhatsAppMockup } from '../mockups/whatsapp/WhatsAppMockup';
+import { WhatsAppStatusMockup } from '../mockups/whatsapp/WhatsAppStatusMockup';
+import { TitleCardMockup } from '../mockups/cards/TitleCardMockup';
+import { TransitionCardMockup } from '../mockups/cards/TransitionCardMockup';
 import { InstagramDMMockup } from '../mockups/instagram-dm/InstagramDMMockup';
 import { TwitterMockup } from '../mockups/twitter/TwitterMockup';
 import { InstagramFeedMockup } from '../mockups/instagram-feed/InstagramFeedMockup';
 import { ThreadsMockup } from '../mockups/threads/ThreadsMockup';
 import { downloadSlidePng, batchExportZip, captureSlideElement } from '../../utils/exportUtils';
 import { Download, FileArchive, Loader2, Plus, Mic, ShieldAlert, Sparkles, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { WAMessage, IGDMMessage } from '../../types/story';
+import type { WAMessage, IGDMMessage, WhatsAppStatusData, TitleCardData, TransitionCardData } from '../../types/story';
 
 interface CanvasStageProps {
   scale?: number;
@@ -130,6 +133,57 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
         },
       };
     });
+  };
+
+  const handleUpdateWAStatus = (field: keyof WhatsAppStatusData, value: any) => {
+    updateActiveSlide(slide => ({
+      ...slide,
+      whatsappStatus: {
+        ...(slide.whatsappStatus || {
+          contactName: slide.whatsapp?.contactName || 'Target Kontak',
+          avatar: slide.whatsapp?.avatar || '',
+          timestamp: 'Hari ini 09:15',
+          statusType: 'text',
+          text: 'Status WA...',
+          backgroundColor: '#075E54',
+          fontStyle: 'sans',
+          activeSegmentIndex: 0,
+          totalSegments: 3,
+        }),
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleUpdateTitleCard = (field: keyof TitleCardData, value: any) => {
+    updateActiveSlide(slide => ({
+      ...slide,
+      titleCard: {
+        ...(slide.titleCard || {
+          mainTitle: 'Judul Cerita',
+          subtitle: 'Kisah nyata yang mendadak viral...',
+          badgeText: 'KISAH NYATA • PART 1',
+          callToAction: 'Geser ke kanan untuk membaca ➔',
+          themeStyle: 'cinematic_dark',
+        }),
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleUpdateTransitionCard = (field: keyof TransitionCardData, value: any) => {
+    updateActiveSlide(slide => ({
+      ...slide,
+      transitionCard: {
+        ...(slide.transitionCard || {
+          timeSkipTitle: '3 HARI KEMUDIAN...',
+          timeBadge: 'Pukul 08:30 WIB',
+          narrationText: 'Menjelang hari pelaksanaan...',
+          themeStyle: 'dark_suspense',
+        }),
+        [field]: value,
+      },
+    }));
   };
 
   const handleUpdateIGDMHeader = (field: string, value: any) => {
@@ -325,6 +379,48 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
             onUpdateMessage={handleUpdateWAMessage}
           />
         );
+      case 'whatsapp-status':
+        return (
+          <WhatsAppStatusMockup
+            data={activeSlide.whatsappStatus || {
+              contactName: activeSlide.whatsapp?.contactName || 'Target Kontak',
+              avatar: activeSlide.whatsapp?.avatar || '',
+              timestamp: 'Hari ini 09:15',
+              statusType: 'text',
+              text: 'Tulis status WhatsApp di sini...',
+              backgroundColor: '#075E54',
+              fontStyle: 'sans',
+              activeSegmentIndex: 0,
+              totalSegments: 3,
+            }}
+            onUpdate={handleUpdateWAStatus}
+          />
+        );
+      case 'title-card':
+        return (
+          <TitleCardMockup
+            data={activeSlide.titleCard || {
+              mainTitle: 'Rental Sound Berujung Drama Horeg',
+              subtitle: 'Kisah nyata pesanan sound hajatan yang mendadak penuh misteri...',
+              badgeText: 'KISAH NYATA • PART 1',
+              callToAction: 'Geser ke kanan untuk membaca ➔',
+              themeStyle: 'cinematic_dark',
+            }}
+            onUpdate={handleUpdateTitleCard}
+          />
+        );
+      case 'transition-card':
+        return (
+          <TransitionCardMockup
+            data={activeSlide.transitionCard || {
+              timeSkipTitle: '3 HARI KEMUDIAN...',
+              timeBadge: 'Pukul 08:30 WIB',
+              narrationText: 'Menjelang hari pelaksanaan, sebuah chat tak terduga masuk dari nomor baru...',
+              themeStyle: 'dark_suspense',
+            }}
+            onUpdate={handleUpdateTransitionCard}
+          />
+        );
       case 'instagram-dm':
         return (
           <InstagramDMMockup
@@ -362,6 +458,8 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
         return null;
     }
   };
+
+  const isCardPlatform = activeSlide.platform === 'title-card' || activeSlide.platform === 'transition-card';
 
   return (
     <div className="flex flex-col items-center justify-center p-2 sm:p-4 w-full h-full">
@@ -421,27 +519,39 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
             borderRadius: 0,
           }}
         >
-          {/* Phone Status Bar (Synchronized with Chat Time) */}
-          <PhoneStatusBar
-            config={activeSlide.statusBar}
-            themeMode={activeSlide.themeMode}
-            isDarkPlatform={activeSlide.platform === 'twitter' || activeSlide.platform === 'threads' ? activeSlide.themeMode === 'dark' : undefined}
-            onUpdateTime={handleUpdateTime}
-          />
+          {/* Phone Status Bar (Rendered for phone screens, hidden for clean title/transition cards) */}
+          {!isCardPlatform && (
+            <PhoneStatusBar
+              config={activeSlide.statusBar}
+              themeMode={activeSlide.themeMode}
+              isDarkPlatform={
+                activeSlide.platform === 'twitter' ||
+                activeSlide.platform === 'threads' ||
+                activeSlide.platform === 'whatsapp-status'
+                  ? true
+                  : activeSlide.themeMode === 'dark'
+              }
+              onUpdateTime={handleUpdateTime}
+            />
+          )}
 
           {/* Suspense Incoming Notification Overlay */}
-          <IncomingNotification
-            config={activeSlide.notification}
-            onInlineEdit={handleInlineNotificationEdit}
-          />
+          {!isCardPlatform && (
+            <IncomingNotification
+              config={activeSlide.notification}
+              onInlineEdit={handleInlineNotificationEdit}
+            />
+          )}
 
           {/* Active Mockup Screen Content */}
           <div className="flex-1 min-h-0 relative overflow-hidden flex flex-col">
             {renderMockup()}
           </div>
 
-          {/* Home Bar Indicator */}
-          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/40 rounded-full pointer-events-none z-30" />
+          {/* Home Bar Indicator (for phone screens) */}
+          {!isCardPlatform && (
+            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/40 rounded-full pointer-events-none z-30" />
+          )}
         </div>
 
         {/* Floating Right Arrow (Next Slide) */}

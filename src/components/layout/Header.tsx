@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useStory } from '../../context/StoryContext';
 import type { PlatformType } from '../../types/story';
-import { Moon, Sun, Layers, FileCode, Save, FolderOpen, CheckCircle2, ChevronDown, PlusCircle } from 'lucide-react';
+import { Moon, Sun, Layers, FileCode, Save, FolderOpen, CheckCircle2, ChevronDown, PlusCircle, Flame, Hourglass, CircleDot } from 'lucide-react';
 import { TwitterIcon, InstagramIcon, WhatsAppIcon } from '../common/BrandIcons';
 import { ScriptParserModal } from '../parser/ScriptParserModal';
 import { NewProjectModal } from '../modals/NewProjectModal';
@@ -127,15 +127,30 @@ export const Header: React.FC = () => {
             </div>
           </div>
 
-          {/* Center: Platform Picker for Active Slide */}
+          {/* Center: Full Platform Picker for Active Slide */}
           <div className="flex items-center space-x-1 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
             <span className="text-xs text-slate-500 font-medium hidden sm:inline mr-1">Format:</span>
             
-            {/* WhatsApp */}
+            {/* Lembar Judul / Cover */}
+            <button
+              type="button"
+              onClick={() => handlePlatformChange('title-card')}
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 ${
+                activeSlide.platform === 'title-card'
+                  ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md'
+                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
+              title="Lembar Judul / Cover Depan Cerita (Slide 1 Hook)"
+            >
+              <Flame className="w-3.5 h-3.5 text-amber-300" />
+              <span>Cover Judul</span>
+            </button>
+
+            {/* WhatsApp Chat */}
             <button
               type="button"
               onClick={() => handlePlatformChange('whatsapp')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 ${
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 ${
                 activeSlide.platform === 'whatsapp'
                   ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
                   : 'bg-slate-800 text-slate-400 hover:text-slate-200'
@@ -145,53 +160,83 @@ export const Header: React.FC = () => {
               <span>WhatsApp</span>
             </button>
 
+            {/* WhatsApp Status */}
+            <button
+              type="button"
+              onClick={() => handlePlatformChange('whatsapp-status')}
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 ${
+                activeSlide.platform === 'whatsapp-status'
+                  ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
+                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
+              title="Screenshot Status WhatsApp (Story WA)"
+            >
+              <CircleDot className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Status WA</span>
+            </button>
+
+            {/* Jeda Scene / Time Skip */}
+            <button
+              type="button"
+              onClick={() => handlePlatformChange('transition-card')}
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 ${
+                activeSlide.platform === 'transition-card'
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
+              title="Lembar Jeda Scene / Time Skip (misal: 3 Hari Kemudian...)"
+            >
+              <Hourglass className="w-3.5 h-3.5 text-indigo-300" />
+              <span>Jeda Scene</span>
+            </button>
+
             {/* Instagram Feed Post */}
             <button
               type="button"
               onClick={() => handlePlatformChange('instagram-feed')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 ${
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 ${
                 activeSlide.platform === 'instagram-feed'
                   ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-md'
                   : 'bg-slate-800 text-slate-400 hover:text-slate-200'
               }`}
             >
               <InstagramIcon className="w-3.5 h-3.5" />
-              <span>Postingan IG Feed</span>
+              <span>Feed IG</span>
             </button>
 
             {/* Instagram DM */}
             <button
               type="button"
               onClick={() => handlePlatformChange('instagram-dm')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 ${
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 ${
                 activeSlide.platform === 'instagram-dm'
                   ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
                   : 'bg-slate-800 text-slate-400 hover:text-slate-200'
               }`}
             >
               <InstagramIcon className="w-3.5 h-3.5" />
-              <span>DM Instagram</span>
+              <span>DM IG</span>
             </button>
 
             {/* X (Twitter) */}
             <button
               type="button"
               onClick={() => handlePlatformChange('twitter')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 ${
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 ${
                 activeSlide.platform === 'twitter'
                   ? 'bg-black border border-neutral-700 text-white shadow-md'
                   : 'bg-slate-800 text-slate-400 hover:text-slate-200'
               }`}
             >
               <TwitterIcon className="w-3.5 h-3.5" />
-              <span>X (Twitter)</span>
+              <span>X (Tweet)</span>
             </button>
 
             {/* Threads */}
             <button
               type="button"
               onClick={() => handlePlatformChange('threads')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 ${
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 ${
                 activeSlide.platform === 'threads'
                   ? 'bg-[#181818] border border-neutral-700 text-white shadow-md'
                   : 'bg-slate-800 text-slate-400 hover:text-slate-200'

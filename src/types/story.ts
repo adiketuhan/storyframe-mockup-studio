@@ -1,4 +1,13 @@
-export type PlatformType = 'whatsapp' | 'instagram-dm' | 'twitter' | 'instagram-feed' | 'threads';
+export type PlatformType =
+  | 'whatsapp'
+  | 'whatsapp-status'
+  | 'instagram-dm'
+  | 'twitter'
+  | 'instagram-feed'
+  | 'threads'
+  | 'title-card'
+  | 'transition-card';
+
 export type ThemeMode = 'dark' | 'light';
 
 export interface Character {
@@ -69,6 +78,37 @@ export interface WhatsAppData {
   blockedNoticeText?: string; // e.g. "Anda telah memblokir kontak ini. Ketuk untuk membuka blokir."
   characterId?: string;
   messages: WAMessage[];
+}
+
+export interface WhatsAppStatusData {
+  contactName: string;
+  avatar: string;
+  timestamp: string; // e.g. "Hari ini 09:15" or "25 menit yang lalu"
+  statusType: 'text' | 'image'; // Text status vs Media Photo/Video status
+  text: string; // Status text content
+  mediaUrl?: string; // Image URL if image status
+  caption?: string; // Caption below photo
+  backgroundColor: string; // e.g. '#075E54' (Green), '#6C3483' (Purple), '#922B21' (Red), '#1A5276' (Blue), '#1E293B' (Slate)
+  fontStyle: 'sans' | 'serif' | 'comic' | 'mono';
+  activeSegmentIndex: number; // 0, 1, 2
+  totalSegments: number; // 1 to 5 dashes
+  characterId?: string;
+}
+
+export interface TitleCardData {
+  mainTitle: string; // e.g. "Rental Sound Berujung Drama Horeg"
+  subtitle: string; // e.g. "Kisah nyata pesanan sound hajatan yang mendadak penuh misteri..."
+  badgeText: string; // e.g. "KISAH NYATA • PART 1"
+  callToAction: string; // e.g. "Geser ke kanan untuk membaca ➔"
+  themeStyle: 'cinematic_dark' | 'horror_red' | 'viral_purple' | 'midnight_blue';
+  coverImageUrl?: string;
+}
+
+export interface TransitionCardData {
+  timeSkipTitle: string; // e.g. "3 HARI KEMUDIAN..." or "KEESOKAN HARINYA"
+  timeBadge: string; // e.g. "Pukul 08:30 WIB"
+  narrationText: string; // e.g. "Menjelang hari H pelaksanaan, sebuah chat tak terduga masuk dari nomor baru..."
+  themeStyle: 'dark_suspense' | 'crimson_danger' | 'slate_minimal';
 }
 
 export interface IGDMMessage {
@@ -154,6 +194,9 @@ export interface Slide {
   statusBar: StatusBarConfig;
   notification: NotificationOverlayConfig;
   whatsapp: WhatsAppData;
+  whatsappStatus: WhatsAppStatusData;
+  titleCard: TitleCardData;
+  transitionCard: TransitionCardData;
   instagramDm: InstagramDMData;
   twitter: TwitterData;
   instagramFeed: InstagramFeedData;

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type { Slide, PlatformType, StoryProject, Character, PageWatermarkConfig } from '../types/story';
+import type { Slide, PlatformType, StoryProject, Character, PageWatermarkConfig, WhatsAppStatusData, TitleCardData, TransitionCardData } from '../types/story';
 import { PRESET_AVATARS, PRESET_MEDIA } from '../utils/imageUtils';
 import { incrementTimeString } from '../utils/timeUtils';
 import { parseScriptToStory, SAMPLE_SCRIPT_TEMPLATE } from '../utils/scriptParser';
@@ -33,6 +33,33 @@ const createSoundHoregCharacters = (): Character[] => [
     isMe: true,
   },
 ];
+
+const createDefaultWhatsAppStatus = (contactName = 'Target Kontak', avatar = PRESET_AVATARS.unknownContact): WhatsAppStatusData => ({
+  contactName,
+  avatar,
+  timestamp: 'Hari ini 09:15',
+  statusType: 'text',
+  text: 'Ada yang aneh hari ini... jangan sampai terlewat!',
+  backgroundColor: '#075E54',
+  fontStyle: 'sans',
+  activeSegmentIndex: 0,
+  totalSegments: 3,
+});
+
+const createDefaultTitleCard = (mainTitle = 'Judul Cerita Viral', subtitle = 'Kisah nyata yang tak terduga...'): TitleCardData => ({
+  mainTitle,
+  subtitle,
+  badgeText: 'KISAH NYATA • PART 1',
+  callToAction: 'Geser ke kanan untuk membaca ➔',
+  themeStyle: 'cinematic_dark',
+});
+
+const createDefaultTransitionCard = (timeSkipTitle = '3 HARI KEMUDIAN...', narrationText = 'Kejadian demi kejadian mulai terungkap setelah obrolan terakhir...'): TransitionCardData => ({
+  timeSkipTitle,
+  timeBadge: 'Pukul 08:30 WIB',
+  narrationText,
+  themeStyle: 'dark_suspense',
+});
 
 // Initial Mystery Story Characters
 const createMysteryCharacters = (): Character[] => [
@@ -144,6 +171,9 @@ const createMysterySlides = (): Slide[] => [
         },
       ],
     },
+    whatsappStatus: createDefaultWhatsAppStatus('+62 812-9900-XXXX', PRESET_AVATARS.unknownContact),
+    titleCard: createDefaultTitleCard('Misteri Villa Pine Hills', 'Kisah teror pesan kaleng di tengah sunyinya malam...'),
+    transitionCard: createDefaultTransitionCard('TENGAH MALAM...', 'Suasana villa semakin mencekam saat lampu teras padam mendadak.'),
     instagramDm: {
       contactName: 'sarahamanda',
       handle: 'sarahamanda',
@@ -242,6 +272,9 @@ const createMysterySlides = (): Slide[] => [
         },
       ],
     },
+    whatsappStatus: createDefaultWhatsAppStatus('+62 812-9900-XXXX', PRESET_AVATARS.unknownContact),
+    titleCard: createDefaultTitleCard('Misteri Villa Pine Hills', 'CCTV Merekam Sesuatu...'),
+    transitionCard: createDefaultTransitionCard('BEBERAPA MENIT KEMUDIAN...', 'Pesan foto tak berlabel terkirim secara tiba-tiba.'),
     instagramDm: {
       contactName: 'sarahamanda',
       handle: 'sarahamanda',
@@ -317,6 +350,9 @@ const createMysterySlides = (): Slide[] => [
       showCallButtons: true,
       messages: [],
     },
+    whatsappStatus: createDefaultWhatsAppStatus('+62 812-9900-XXXX', PRESET_AVATARS.unknownContact),
+    titleCard: createDefaultTitleCard('Misteri Villa Pine Hills', 'Langkah di Tangga Lantai 2'),
+    transitionCard: createDefaultTransitionCard('DETIK-DETIK MENEGANGKAN...', 'Pemberitahuan muncul di layar saat sedang membuka feed Instagram.'),
     instagramDm: {
       contactName: 'sarahamanda',
       handle: 'sarahamanda',
@@ -406,6 +442,9 @@ const createBlankSlide = (): Slide => ({
       },
     ],
   },
+  whatsappStatus: createDefaultWhatsAppStatus('Target Kontak', PRESET_AVATARS.unknownContact),
+  titleCard: createDefaultTitleCard('Judul Cerita', 'Sub-judul atau sinopsis pengantar cerita...'),
+  transitionCard: createDefaultTransitionCard('3 HARI KEMUDIAN...', 'Deskripsi jeda adegan atau latar waktu berikutnya...'),
   instagramDm: {
     contactName: 'username_ig',
     handle: 'username_ig',
@@ -792,6 +831,9 @@ export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           }
         ],
       },
+      whatsappStatus: activeSlide?.whatsappStatus ? { ...activeSlide.whatsappStatus } : createDefaultWhatsAppStatus(activeSlide?.whatsapp?.contactName || 'Target Kontak', activeSlide?.whatsapp?.avatar || PRESET_AVATARS.unknownContact),
+      titleCard: activeSlide?.titleCard ? { ...activeSlide.titleCard } : createDefaultTitleCard(`Slide ${newSlideNumber}`, 'Kelanjutan kisah drama...'),
+      transitionCard: activeSlide?.transitionCard ? { ...activeSlide.transitionCard } : createDefaultTransitionCard('BEBERAPA SAAT KEMUDIAN...', 'Situasi mulai memanas di obrolan selanjutnya...'),
       instagramDm: {
         contactName: activeSlide?.instagramDm?.contactName || 'username_ig',
         handle: activeSlide?.instagramDm?.handle || 'username_ig',
