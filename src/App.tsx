@@ -1,31 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { StoryProvider, useStory } from './context/StoryContext';
 import { Header } from './components/layout/Header';
 import { CanvasStage } from './components/layout/CanvasStage';
 import { EditorDrawer } from './components/layout/EditorDrawer';
-import { ChevronLeft, ChevronRight, Copy, Plus, ZoomIn, ZoomOut, Sparkles, ArrowLeftRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Copy, Plus, ZoomIn, ZoomOut, Sparkles } from 'lucide-react';
 import type { PlatformType } from './types/story';
 
 const StudioMain: React.FC = () => {
   const { slides, setActiveSlideId, currentSlideIndex, duplicateSlide, addSlide, activeSlide } = useStory();
   const [zoomScale, setZoomScale] = useState<number>(1);
-  const [layoutSide, setLayoutSide] = useState<'left' | 'right'>(() => {
-    try {
-      return (localStorage.getItem('storyframe_layout_side') as 'left' | 'right') || 'left';
-    } catch {
-      return 'left';
-    }
-  });
-
   const canvasRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('storyframe_layout_side', layoutSide);
-    } catch (e) {
-      console.error(e);
-    }
-  }, [layoutSide]);
 
   const handlePrevSlide = () => {
     if (currentSlideIndex > 0) {
@@ -37,10 +21,6 @@ const StudioMain: React.FC = () => {
     if (currentSlideIndex < slides.length - 1) {
       setActiveSlideId(slides[currentSlideIndex + 1].id);
     }
-  };
-
-  const toggleLayoutSide = () => {
-    setLayoutSide(prev => (prev === 'left' ? 'right' : 'left'));
   };
 
   const getPlatformBadge = (platform: PlatformType) => {
@@ -58,10 +38,15 @@ const StudioMain: React.FC = () => {
       {/* Top Main Navigation Header */}
       <Header />
 
-      {/* Main Studio Workspace with dynamic Left/Right layout for PC */}
-      <main className={`flex-1 flex flex-col ${layoutSide === 'left' ? 'lg:flex-row' : 'lg:flex-row-reverse'} overflow-hidden`}>
-        {/* Responsive Preview Canvas Stage (Tampilan Layar HP Mockup) */}
-        <div className={`flex-1 flex flex-col bg-slate-950 border-b lg:border-b-0 ${layoutSide === 'left' ? 'lg:border-r' : 'lg:border-l'} border-slate-800/80 min-h-[520px] lg:min-h-0 relative`}>
+      {/* Main Studio Workspace: PANEL MENU DI KIRI, TAMPILAN MOCKUP DI KANAN */}
+      <main className="flex-1 flex flex-col-reverse lg:flex-row overflow-hidden">
+        {/* LEFT SECTION (PC): Panel Menu Editor (Pemeran, Konten, Timeline, Download 3:4) */}
+        <div className="w-full lg:w-[480px] xl:w-[540px] flex-shrink-0 flex flex-col border-t lg:border-t-0 lg:border-r border-slate-800 bg-slate-950 h-auto lg:h-[calc(100vh-57px)] z-10">
+          <EditorDrawer />
+        </div>
+
+        {/* RIGHT SECTION (PC): Area Tampilan Layar Mockup Ponsel 3:4 */}
+        <div className="flex-1 flex flex-col bg-slate-950 min-h-[520px] lg:min-h-0 relative">
           {/* Canvas Sub-Header Controls */}
           <div className="px-3 sm:px-4 py-2 border-b border-slate-800/60 bg-slate-900/40 flex items-center justify-between text-xs text-slate-400 select-none shrink-0">
             {/* Slide Quick Switcher */}
@@ -95,7 +80,7 @@ const StudioMain: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Actions, Layout Switcher & Zoom */}
+            {/* Quick Actions & Zoom */}
             <div className="flex items-center space-x-2">
               <button
                 type="button"
@@ -115,17 +100,6 @@ const StudioMain: React.FC = () => {
               >
                 <Plus className="w-3 h-3" />
                 <span className="hidden sm:inline">Slide Baru</span>
-              </button>
-
-              {/* PC Layout Swapper: Tampilan Kiri / Kanan */}
-              <button
-                type="button"
-                onClick={toggleLayoutSide}
-                className="hidden lg:flex items-center space-x-1 px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium border border-slate-700/60"
-                title={`Tukar Posisi Layout: Saat ini Tampilan di ${layoutSide === 'left' ? 'Kiri' : 'Kanan'}, Menu di ${layoutSide === 'left' ? 'Kanan' : 'Kiri'}`}
-              >
-                <ArrowLeftRight className="w-3 h-3 text-indigo-400" />
-                <span>{layoutSide === 'left' ? 'Menu Kanan' : 'Menu Kiri'}</span>
               </button>
 
               {/* Zoom Controls */}
@@ -153,7 +127,7 @@ const StudioMain: React.FC = () => {
             </div>
           </div>
 
-          {/* Center Stage Container */}
+          {/* Center Stage Container (Tampilan Layar Mockup) */}
           <div className="flex-1 overflow-y-auto flex items-center justify-center p-2 sm:p-4 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px]">
             <CanvasStage ref={canvasRef} scale={zoomScale} />
           </div>
@@ -165,11 +139,6 @@ const StudioMain: React.FC = () => {
               Tip Storytelling: Ketuk langsung teks di layar HP di atas untuk <strong>edit langsung (inline-editing)</strong>!
             </span>
           </div>
-        </div>
-
-        {/* Dynamic Editor & Controls Drawer (Menu Editor) */}
-        <div className="w-full lg:w-[480px] xl:w-[540px] flex-shrink-0 flex flex-col h-auto lg:h-[calc(100vh-57px)]">
-          <EditorDrawer />
         </div>
       </main>
 
