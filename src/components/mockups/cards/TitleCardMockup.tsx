@@ -76,7 +76,7 @@ export const TitleCardMockup: React.FC<TitleCardMockupProps> = ({ data, onUpdate
       </div>
 
       {/* Middle Section: Main Title & Hook Subtitle */}
-      <div className="relative z-10 my-auto text-center space-y-4 px-2">
+      <div className="relative z-10 my-auto text-center space-y-3 px-2">
         <h1
           contentEditable={!!onUpdate}
           suppressContentEditableWarning
@@ -85,8 +85,6 @@ export const TitleCardMockup: React.FC<TitleCardMockupProps> = ({ data, onUpdate
         >
           {data.mainTitle || 'Judul Cerita Viral'}
         </h1>
-
-        <div className="w-12 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mx-auto" />
 
         <p
           contentEditable={!!onUpdate}
