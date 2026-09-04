@@ -107,7 +107,7 @@ export const TitleCardMockup: React.FC<TitleCardMockupProps> = ({ data, onUpdate
             {data.callToAction || 'Geser ke kanan untuk membaca ➔'}
           </span>
         </div>
-        <p className="text-[10px] text-slate-500">StoryFrame Studio 3:4</p>
+        <p className="text-[10px] text-slate-500">tokonembahmo.com</p>
       </div>
     </div>
   );
