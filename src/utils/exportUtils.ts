@@ -10,7 +10,7 @@ export interface RenderOptions {
 }
 
 /**
- * Capture an element as a 1080x1440 PNG Blob (Sharp 90-degree square corners, no white corner artifacts)
+ * Capture an element as a 1080x1440 PNG Blob (Optimized for ultra-fast rendering)
  */
 export const captureSlideElement = async (
   element: HTMLElement,
@@ -20,16 +20,13 @@ export const captureSlideElement = async (
   const targetWidth = options.width || 1080;
   const targetHeight = options.height || 1440;
 
-  if (document.fonts) {
-    await document.fonts.ready;
-  }
-
   const blob = await toBlob(element, {
     pixelRatio: pixelRatio,
     canvasWidth: targetWidth,
     canvasHeight: targetHeight,
-    quality: 0.98,
-    cacheBust: true,
+    quality: 0.95,
+    cacheBust: false,
+    skipAutoScale: true,
     style: {
       transform: 'none',
       borderRadius: '0px',
@@ -50,7 +47,7 @@ export const captureSlideElement = async (
 };
 
 /**
- * Download a single slide as PNG (1080x1440, 100% rectangular bleed)
+ * Download a single slide as PNG (1080x1440, 100% rectangular bleed, Instant)
  */
 export const downloadSlidePng = async (
   element: HTMLElement,
@@ -60,8 +57,9 @@ export const downloadSlidePng = async (
     pixelRatio: 2,
     canvasWidth: 1080,
     canvasHeight: 1440,
-    quality: 0.98,
-    cacheBust: true,
+    quality: 0.95,
+    cacheBust: false,
+    skipAutoScale: true,
     style: {
       transform: 'none',
       borderRadius: '0px',
@@ -72,7 +70,7 @@ export const downloadSlidePng = async (
 };
 
 /**
- * Batch export all slides into a single organized ZIP
+ * Batch export all slides into a single organized ZIP (Optimized Turbo Pipeline)
  */
 export const batchExportZip = async (
   slides: Slide[],
@@ -105,7 +103,7 @@ export const batchExportZip = async (
   const content = await zip.generateAsync({
     type: 'blob',
     compression: 'DEFLATE',
-    compressionOptions: { level: 9 },
+    compressionOptions: { level: 6 },
   });
 
   saveAs(content, `${folderName}.zip`);

@@ -293,7 +293,7 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
 
       const renderSlideToBlob = async (slide: typeof slides[0]) => {
         setActiveSlideId(slide.id);
-        await new Promise(r => setTimeout(r, 180));
+        await new Promise(r => setTimeout(r, 60));
         const canvasElement = document.getElementById('storyframe-export-canvas');
         if (!canvasElement) throw new Error('Canvas not found');
         return await captureSlideElement(canvasElement, { pixelRatio: 2, width: 1080, height: 1440 });
