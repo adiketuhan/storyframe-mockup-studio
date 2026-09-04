@@ -1,5 +1,5 @@
 import type { Slide, PlatformType, WAMessage, Character, TitleCardData, TransitionCardData, WhatsAppStatusData } from '../types/story';
-import { PRESET_AVATARS, PRESET_MEDIA, getAiImageDirectUrl } from './imageUtils';
+import { PRESET_AVATARS, PRESET_MEDIA } from './imageUtils';
 import { incrementTimeString } from './timeUtils';
 
 export interface ParsedStoryResult {
@@ -85,7 +85,7 @@ Scene 5 (thread)
 Scene 6 (wa)
 vn
 [Pesan penjelasan suara (Voice Note) dan obrolan detail]
-[GAMBAR: deskripsi foto bukti/kejadian nyata secara realistis, misal: foto truk sound system di jalan desa malam hari]
+[GAMBAR: deskripsi foto bukti/kejadian nyata, misal: foto truk sound system di jalan desa malam hari]
 [Keterangan foto penguat cerita]
 
 Scene 7 (jeda)
@@ -115,6 +115,20 @@ Tema Cerita: [Tuliskan tema yang diinginkan, misal: Drama Rental Sound / Mantan 
 function advanceTimeRandomly(timeStr: string, minMinutes: number, maxMinutes: number): string {
   const delta = Math.floor(Math.random() * (maxMinutes - minMinutes + 1)) + minMinutes;
   return incrementTimeString(timeStr, Math.max(1, delta));
+}
+
+/**
+ * Helper to pick realistic preset media based on context keywords
+ */
+function selectPresetMedia(text: string): string {
+  const lower = text.toLowerCase();
+  if (lower.includes('dokumen') || lower.includes('kuitansi') || lower.includes('struk') || lower.includes('transfer') || lower.includes('surat') || lower.includes('rahasia')) {
+    return PRESET_MEDIA.documentEvidence;
+  }
+  if (lower.includes('villa') || lower.includes('rumah') || lower.includes('kamar') || lower.includes('gelap') || lower.includes('pohon')) {
+    return PRESET_MEDIA.abandonedHouse;
+  }
+  return PRESET_MEDIA.cctvEvidence;
 }
 
 /**
@@ -257,11 +271,14 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
     sceneChunks.push(currentChunk);
   }
 
-  // Phase 3: Build Slides from Scene Chunks with Realistic Dynamic Time
+  // Phase 3: Build Slides from Scene Chunks with Continuous Chat History Accumulation
   const slides: Slide[] = [];
   let currentTime = '09:00';
   let activeThemChar = charThem;
   let activeMeChar = charMe;
+
+  // Map to store cumulative conversation history per character contact
+  const conversationHistoryMap = new Map<string, WAMessage[]>();
 
   if (sceneChunks.length > 0) {
     projectTitle = `Cerita ${charThem.name} & ${charMe.name}`;
@@ -449,7 +466,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
             callToAction = l.replace(/^\[(?:CTA|ACTION)\]\s*:\s*/i, '').trim();
           } else if (/^\[(?:PROMPT_IMAGE|PROMPT_GAMBAR|GAMBAR|FOTO|IMAGE)\]/i.test(l)) {
             const p = l.replace(/^\[(?:PROMPT_IMAGE|PROMPT_GAMBAR|GAMBAR|FOTO|IMAGE)\]\s*:\s*/i, '').trim();
-            coverImageUrl = getAiImageDirectUrl(p);
+            coverImageUrl = selectPresetMedia(p);
           } else if (!mainTitle) {
             mainTitle = l;
           } else if (!subtitle) {
@@ -459,7 +476,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
 
         if (mainTitle) {
           slide.titleCard.mainTitle = mainTitle;
-          projectTitle = mainTitle; // Update project title from cover
+          projectTitle = mainTitle;
         }
         if (subtitle) slide.titleCard.subtitle = subtitle;
         if (badgeText) slide.titleCard.badgeText = badgeText;
@@ -494,7 +511,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
         const imgMatch = bodyText.match(/^\[(?:GAMBAR|FOTO|IMAGE|PROMPT_IMAGE|PROMPT_GAMBAR)\]\s*:\s*(.+)$/im);
         if (imgMatch) {
           slide.whatsappStatus.statusType = 'image';
-          slide.whatsappStatus.mediaUrl = getAiImageDirectUrl(imgMatch[1].trim());
+          slide.whatsappStatus.mediaUrl = selectPresetMedia(imgMatch[1].trim());
           slide.whatsappStatus.caption = bodyText.replace(/^\[(?:GAMBAR|FOTO|IMAGE|PROMPT_IMAGE|PROMPT_GAMBAR|KIRIM_GAMBAR)\](?:\s*:\s*.+)?$/gim, '').trim();
         } else {
           slide.whatsappStatus.text = bodyText || 'Story WhatsApp terbaru...';
@@ -503,7 +520,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
         slide.whatsappStatus.contactName = activeThemChar.name;
         slide.whatsappStatus.avatar = activeThemChar.avatar;
       } else if (chunk.platform === 'whatsapp' || chunk.platform === 'instagram-dm') {
-        const messages: WAMessage[] = [];
+        const newChunkMessages: WAMessage[] = [];
         let currentSpeaker: 'them' | 'me' = 'them';
         let currentParagraphLines: string[] = [];
         let msgTime = currentTime;
@@ -515,12 +532,12 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
           let fullText = currentParagraphLines.join('\n').trim();
           let mediaUrl: string | undefined = undefined;
 
-          // Check if containing image prompt tag
+          // Check if containing image tag
           if (/\[(?:GAMBAR|FOTO|IMAGE|CCTV|PROMPT_IMAGE|PROMPT_GAMBAR)\]/i.test(fullText) || /^\[KIRIM_GAMBAR\]/i.test(fullText)) {
             msgType = 'image';
             const imgMatch = fullText.match(/\[(?:GAMBAR|FOTO|IMAGE|CCTV|PROMPT_IMAGE|PROMPT_GAMBAR)\]\s*:\s*([^\]\n]+)/i);
             const promptDesc = imgMatch ? imgMatch[1].trim() : fullText.replace(/^\[KIRIM_GAMBAR\]/gi, '').trim();
-            mediaUrl = getAiImageDirectUrl(promptDesc || 'Foto kejadian nyata di tempat');
+            mediaUrl = selectPresetMedia(promptDesc);
             fullText = fullText.replace(/^\[KIRIM_GAMBAR\]\s*/gim, '').replace(/\[(?:GAMBAR|FOTO|IMAGE|CCTV|PROMPT_IMAGE|PROMPT_GAMBAR)\]\s*:\s*[^\]\n]+/gi, '').trim();
           } else if (/^vn\b|^voice note/i.test(fullText)) {
             msgType = 'voice';
@@ -535,12 +552,12 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
 
           if (fullText || msgType === 'image') {
             // Incremental realistic dynamic chat time (+1 to +2 min per exchange)
-            if (messages.length > 0) {
+            if (newChunkMessages.length > 0) {
               msgTime = incrementTimeString(msgTime, Math.random() > 0.4 ? 1 : 2);
             }
 
-            messages.push({
-              id: `m-${messages.length + 1}-${Date.now()}`,
+            newChunkMessages.push({
+              id: `m-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
               sender: currentSpeaker,
               type: msgType,
               text: fullText,
@@ -575,7 +592,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
             continue;
           }
 
-          // If line starts with [KIRIM_GAMBAR] or [PROMPT_IMAGE:], flush previous text before creating image
+          // If line starts with image tags, flush previous text before creating image
           if (/^\[KIRIM_GAMBAR\]|^\[(?:PROMPT_IMAGE|PROMPT_GAMBAR|GAMBAR|FOTO)\]/i.test(trimmed)) {
             flushParagraph();
             currentParagraphLines.push(trimmed);
@@ -602,8 +619,8 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
 
         flushParagraph();
 
-        if (messages.length === 0) {
-          messages.push({
+        if (newChunkMessages.length === 0) {
+          newChunkMessages.push({
             id: `m-default-${Date.now()}`,
             sender: 'them',
             type: 'text',
@@ -613,12 +630,20 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
           });
         }
 
+        // Feature: Continuous chat progression across consecutive scenes
+        const threadKey = (activeThemChar.id || activeThemChar.name || 'default_contact').toLowerCase();
+        const priorMessages = conversationHistoryMap.get(threadKey) || [];
+
+        // Combine prior history + new messages
+        const allMessages = [...priorMessages, ...newChunkMessages];
+        conversationHistoryMap.set(threadKey, allMessages);
+
         // Update current time to latest message time
         currentTime = msgTime;
         slide.statusBar.time = currentTime;
 
-        slide.whatsapp.messages = messages;
-        slide.instagramDm.messages = messages.map(m => ({
+        slide.whatsapp.messages = allMessages;
+        slide.instagramDm.messages = allMessages.map(m => ({
           id: m.id,
           sender: m.sender,
           type: m.type === 'voice' ? 'text' : (m.type as any),
@@ -630,7 +655,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
         const bodyText = chunk.lines.filter(l => !/^(?:pemeran|tokoh)\s*\d+/i.test(l.trim())).map(l => l.trim()).filter(Boolean).join('\n');
         const imgMatch = bodyText.match(/^\[(?:GAMBAR|FOTO|IMAGE|PROMPT_IMAGE)\]\s*:\s*(.+)$/im);
         if (imgMatch) {
-          slide.twitter.mediaUrl = getAiImageDirectUrl(imgMatch[1].trim());
+          slide.twitter.mediaUrl = selectPresetMedia(imgMatch[1].trim());
           slide.twitter.text = bodyText.replace(/^\[(?:GAMBAR|FOTO|IMAGE|PROMPT_IMAGE)\]\s*:\s*.+$/im, '').trim();
         } else {
           slide.twitter.text = bodyText || 'Tweet terbaru...';
@@ -639,7 +664,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
         const bodyText = chunk.lines.filter(l => !/^(?:pemeran|tokoh)\s*\d+/i.test(l.trim())).map(l => l.trim()).filter(Boolean).join('\n');
         const imgMatch = bodyText.match(/^\[(?:GAMBAR|FOTO|IMAGE|PROMPT_IMAGE)\]\s*:\s*(.+)$/im);
         if (imgMatch) {
-          slide.threads.mediaUrl = getAiImageDirectUrl(imgMatch[1].trim());
+          slide.threads.mediaUrl = selectPresetMedia(imgMatch[1].trim());
           slide.threads.text = bodyText.replace(/^\[(?:GAMBAR|FOTO|IMAGE|PROMPT_IMAGE)\]\s*:\s*.+$/im, '').trim();
         } else {
           slide.threads.text = bodyText || 'Utas terbaru...';
@@ -648,7 +673,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
         const bodyText = chunk.lines.filter(l => !/^(?:pemeran|tokoh)\s*\d+/i.test(l.trim())).map(l => l.trim()).filter(Boolean).join('\n');
         const imgMatch = bodyText.match(/^\[(?:GAMBAR|FOTO|IMAGE|PROMPT_IMAGE)\]\s*:\s*(.+)$/im);
         if (imgMatch) {
-          slide.instagramFeed.mediaUrl = getAiImageDirectUrl(imgMatch[1].trim());
+          slide.instagramFeed.mediaUrl = selectPresetMedia(imgMatch[1].trim());
           slide.instagramFeed.caption = bodyText.replace(/^\[(?:GAMBAR|FOTO|IMAGE|PROMPT_IMAGE)\]\s*:\s*.+$/im, '').trim();
         } else {
           slide.instagramFeed.caption = bodyText || 'Caption terbaru...';

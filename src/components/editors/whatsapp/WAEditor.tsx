@@ -1,15 +1,33 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useStory } from '../../../context/StoryContext';
 import type { WAMessage, WAMessageType, WAMessageStatus } from '../../../types/story';
-import { Plus, Trash2, ArrowUp, ArrowDown, Mic, Ban, Image as ImageIcon, Upload, ShieldAlert, Lock, Sparkles } from 'lucide-react';
+import { Plus, Trash2, ArrowUp, ArrowDown, Mic, Ban, Image as ImageIcon, Upload, ShieldAlert, Lock, History } from 'lucide-react';
 import { fileToBase64, PRESET_MEDIA } from '../../../utils/imageUtils';
 import { CharacterQuickPicker } from '../../characters/CharacterQuickPicker';
-import { AiImageModal } from '../../common/AiImageModal';
 
 export const WAEditor: React.FC = () => {
-  const { activeSlide, updateActiveSlide, characters } = useStory();
+  const { activeSlide, updateActiveSlide, characters, slides, currentSlideIndex } = useStory();
   const { whatsapp } = activeSlide;
-  const [aiModalTargetIndex, setAiModalTargetIndex] = useState<number | null>(null);
+
+  const previousWaSlide = slides
+    .slice(0, currentSlideIndex)
+    .reverse()
+    .find(s => s.platform === 'whatsapp' && s.whatsapp.messages && s.whatsapp.messages.length > 0);
+
+  const handlePullPreviousMessages = () => {
+    if (!previousWaSlide) return;
+    const cloned = previousWaSlide.whatsapp.messages.map(m => ({
+      ...m,
+      id: `m-cont-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    }));
+    updateActiveSlide(slide => ({
+      ...slide,
+      whatsapp: {
+        ...slide.whatsapp,
+        messages: [...cloned, ...slide.whatsapp.messages],
+      },
+    }));
+  };
 
   const handleUpdateHeader = (field: string, value: any) => {
     updateActiveSlide(slide => ({
@@ -273,6 +291,26 @@ export const WAEditor: React.FC = () => {
           <h3 className="font-bold text-sm text-slate-200">Daftar Balon Chat ({whatsapp.messages.length})</h3>
         </div>
 
+        {/* Feature: Pull / Continue Chat from previous WA slide */}
+        {previousWaSlide && (
+          <div className="p-3 bg-emerald-950/40 border border-emerald-800/40 rounded-xl flex items-center justify-between">
+            <div className="text-xs text-emerald-200">
+              <div className="font-bold flex items-center space-x-1.5">
+                <History className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Sambung Chat dari {previousWaSlide.title}</span>
+              </div>
+              <p className="text-[11px] text-emerald-300/80">Tersedia {previousWaSlide.whatsapp.messages.length} pesan di slide sebelumnya</p>
+            </div>
+            <button
+              type="button"
+              onClick={handlePullPreviousMessages}
+              className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all shadow"
+            >
+              + Tarik Chat Sebelumnya
+            </button>
+          </div>
+        )}
+
         {/* Quick Add Message Buttons */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           <button
@@ -477,7 +515,7 @@ export const WAEditor: React.FC = () => {
                     <label className="flex-1 cursor-pointer">
                       <div className="py-1.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs text-slate-300 font-medium flex items-center justify-center space-x-1.5">
                         <Upload className="w-3.5 h-3.5" />
-                        <span>Upload File</span>
+                        <span>Upload Foto / Media</span>
                       </div>
                       <input
                         type="file"
@@ -486,17 +524,33 @@ export const WAEditor: React.FC = () => {
                         className="hidden"
                       />
                     </label>
+                  </div>
 
-                    {/* AI Generator button */}
+                  <div className="flex space-x-1 overflow-x-auto pb-1">
+                    <span className="text-[10px] text-slate-500 shrink-0">Preset:</span>
                     <button
                       type="button"
-                      onClick={() => setAiModalTargetIndex(index)}
-                      className="py-1.5 px-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 shadow-md shadow-indigo-600/30 transition-all"
+                      onClick={() => updateMessage(index, { mediaUrl: PRESET_MEDIA.cctvEvidence, type: 'image' })}
+                      className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 rounded shrink-0"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>✨ AI Foto</span>
+                      CCTV Malam
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateMessage(index, { mediaUrl: PRESET_MEDIA.abandonedHouse, type: 'image' })}
+                      className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 rounded shrink-0"
+                    >
+                      Villa Gelap
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateMessage(index, { mediaUrl: PRESET_MEDIA.documentEvidence, type: 'image' })}
+                      className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 rounded shrink-0"
+                    >
+                      Kuitansi / Dokumen
                     </button>
                   </div>
+
                   <input
                     type="text"
                     value={msg.text}
@@ -550,23 +604,6 @@ export const WAEditor: React.FC = () => {
           ))}
         </div>
       </div>
-
-      {/* AI Image Generator Modal */}
-      <AiImageModal
-        isOpen={aiModalTargetIndex !== null}
-        onClose={() => setAiModalTargetIndex(null)}
-        title="Buat Foto Lampiran Chat WhatsApp (Realistis)"
-        defaultPrompt={
-          aiModalTargetIndex !== null && whatsapp.messages[aiModalTargetIndex]?.text
-            ? whatsapp.messages[aiModalTargetIndex].text
-            : 'Truk pickup muat sound system horeg di jalanan desa malam hari'
-        }
-        onSelectImage={(base64OrUrl) => {
-          if (aiModalTargetIndex !== null) {
-            updateMessage(aiModalTargetIndex, { mediaUrl: base64OrUrl, type: 'image' });
-          }
-        }}
-      />
     </div>
   );
 };

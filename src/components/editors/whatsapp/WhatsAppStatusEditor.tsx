@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useStory } from '../../../context/StoryContext';
 import { CharacterQuickPicker } from '../../characters/CharacterQuickPicker';
-import { Palette, Type, Image as ImageIcon, Upload, Sparkles } from 'lucide-react';
+import { Palette, Type, Image as ImageIcon, Upload } from 'lucide-react';
 import type { WhatsAppStatusData } from '../../../types/story';
-import { AiImageModal } from '../../common/AiImageModal';
 
 const BG_COLOR_PRESETS = [
   { name: 'Hijau WA', value: '#075E54' },
@@ -16,7 +15,6 @@ const BG_COLOR_PRESETS = [
 
 export const WhatsAppStatusEditor: React.FC = () => {
   const { activeSlide, updateActiveSlide } = useStory();
-  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const data: WhatsAppStatusData = activeSlide.whatsappStatus || {
     contactName: 'Target Kontak',
     avatar: '',
@@ -207,31 +205,27 @@ export const WhatsAppStatusEditor: React.FC = () => {
             <div className="space-y-2">
               <label className="block text-xs text-slate-400">Pilih Foto Status:</label>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <label className="flex items-center justify-center space-x-2 py-2.5 px-3 border border-slate-700 hover:border-slate-500 rounded-xl cursor-pointer bg-slate-950/60 transition-colors">
-                  <Upload className="w-4 h-4 text-slate-300" />
-                  <span className="text-xs font-semibold text-slate-300">Upload dari File</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </label>
-
-                <button
-                  type="button"
-                  onClick={() => setIsAiModalOpen(true)}
-                  className="flex items-center justify-center space-x-2 py-2.5 px-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl text-xs shadow-md shadow-indigo-600/30 transition-all"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>✨ Buat Foto AI Realistis</span>
-                </button>
-              </div>
+              <label className="flex items-center justify-center space-x-2 py-2.5 px-3 border border-slate-700 hover:border-slate-500 rounded-xl cursor-pointer bg-slate-950/60 transition-colors">
+                <Upload className="w-4 h-4 text-slate-300" />
+                <span className="text-xs font-semibold text-slate-300">Upload Foto dari File</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </label>
 
               {data.mediaUrl && (
                 <div className="relative rounded-xl overflow-hidden border border-slate-800 aspect-video">
                   <img src={data.mediaUrl} alt="Status Preview" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleUpdate('mediaUrl', undefined)}
+                    className="absolute top-2 right-2 px-2 py-1 bg-red-600/80 hover:bg-red-600 text-white rounded text-[11px] font-bold"
+                  >
+                    Hapus Foto
+                  </button>
                 </div>
               )}
             </div>
@@ -246,18 +240,6 @@ export const WhatsAppStatusEditor: React.FC = () => {
           </>
         )}
       </div>
-
-      {/* AI Image Modal */}
-      <AiImageModal
-        isOpen={isAiModalOpen}
-        onClose={() => setIsAiModalOpen(false)}
-        title="Buat Foto Status WhatsApp Realistis"
-        defaultPrompt={data.caption || 'Foto suasana panggung hajatan sound horeg malam hari'}
-        onSelectImage={(base64OrUrl) => {
-          handleUpdate('mediaUrl', base64OrUrl);
-          handleUpdate('statusType', 'image');
-        }}
-      />
     </div>
   );
 };

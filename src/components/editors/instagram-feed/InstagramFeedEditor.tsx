@@ -1,14 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useStory } from '../../../context/StoryContext';
-import { Upload, Image as ImageIcon, Heart, Sparkles } from 'lucide-react';
+import { Upload, Image as ImageIcon, Heart } from 'lucide-react';
 import { fileToBase64, PRESET_MEDIA } from '../../../utils/imageUtils';
 import { CharacterQuickPicker } from '../../characters/CharacterQuickPicker';
-import { AiImageModal } from '../../common/AiImageModal';
 
 export const InstagramFeedEditor: React.FC = () => {
   const { activeSlide, updateActiveSlide, characters } = useStory();
   const { instagramFeed } = activeSlide;
-  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   const handleUpdate = (field: string, value: any) => {
     updateActiveSlide(slide => ({
@@ -119,7 +117,7 @@ export const InstagramFeedEditor: React.FC = () => {
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3">
         <h3 className="font-bold text-sm text-slate-200">Foto & Caption Postingan</h3>
 
-        {/* Photo Upload & AI Button */}
+        {/* Photo Upload */}
         <div className="space-y-2">
           <label className="block text-xs text-slate-400">Foto Utama Feed:</label>
           <div className="flex items-center space-x-2">
@@ -137,7 +135,7 @@ export const InstagramFeedEditor: React.FC = () => {
             <label className="flex-1 cursor-pointer">
               <div className="py-2 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs text-slate-300 font-medium flex items-center justify-center space-x-1.5">
                 <Upload className="w-4 h-4" />
-                <span>Upload File</span>
+                <span>Upload Foto Feed</span>
               </div>
               <input
                 type="file"
@@ -146,15 +144,6 @@ export const InstagramFeedEditor: React.FC = () => {
                 className="hidden"
               />
             </label>
-
-            <button
-              type="button"
-              onClick={() => setIsAiModalOpen(true)}
-              className="py-2 px-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 shadow-md shadow-indigo-600/30 transition-all"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>✨ AI Foto</span>
-            </button>
           </div>
 
           <div className="flex space-x-1 mt-2 overflow-x-auto pb-1">
@@ -249,17 +238,6 @@ export const InstagramFeedEditor: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* AI Image Generator Modal */}
-      <AiImageModal
-        isOpen={isAiModalOpen}
-        onClose={() => setIsAiModalOpen(false)}
-        title="Buat Foto Postingan Feed Instagram Realistis"
-        defaultPrompt={instagramFeed.caption || 'Foto halaman villa tua berkabut di pegunungan'}
-        onSelectImage={(base64OrUrl) => {
-          handleUpdate('mediaUrl', base64OrUrl);
-        }}
-      />
     </div>
   );
 };
