@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStory } from '../../../context/StoryContext';
-import { Palette, Upload, Flame } from 'lucide-react';
+import { Palette, Upload, Flame, Sparkles } from 'lucide-react';
 import type { TitleCardData } from '../../../types/story';
+import { AiImageModal } from '../../common/AiImageModal';
 
 export const TitleCardEditor: React.FC = () => {
   const { activeSlide, updateActiveSlide } = useStory();
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const data: TitleCardData = activeSlide.titleCard || {
     mainTitle: 'Rental Sound Berujung Drama Horeg',
     subtitle: 'Kisah nyata pesanan sound hajatan yang mendadak penuh misteri...',
@@ -93,7 +95,7 @@ export const TitleCardEditor: React.FC = () => {
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
         <h3 className="font-bold text-xs text-slate-300 flex items-center space-x-1.5">
           <Palette className="w-3.5 h-3.5 text-purple-400" />
-          <span>Tema Visual Cover</span>
+          <span>Tema Visual & Background Cover</span>
         </h3>
 
         <div className="grid grid-cols-2 gap-2">
@@ -118,21 +120,61 @@ export const TitleCardEditor: React.FC = () => {
           ))}
         </div>
 
-        {/* Optional Custom Cover Photo */}
-        <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
-          <label className="block text-xs text-slate-400">Gambar Latar Belakang (Opsional):</label>
-          <label className="flex items-center justify-center space-x-2 py-2.5 px-4 border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl cursor-pointer bg-slate-950/60 transition-colors">
-            <Upload className="w-4 h-4 text-indigo-400" />
-            <span className="text-xs font-semibold text-slate-300">Pilih Gambar Background</span>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-          </label>
+        {/* Custom Cover Photo / AI Generator */}
+        <div className="pt-2 border-t border-slate-800/80 space-y-2">
+          <label className="block text-xs text-slate-400">Gambar Latar Belakang Cover:</label>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label className="flex items-center justify-center space-x-2 py-2.5 px-3 border border-slate-700 hover:border-slate-500 rounded-xl cursor-pointer bg-slate-950/60 transition-colors">
+              <Upload className="w-4 h-4 text-slate-300" />
+              <span className="text-xs font-semibold text-slate-300">Upload File</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+            </label>
+
+            <button
+              type="button"
+              onClick={() => setIsAiModalOpen(true)}
+              className="flex items-center justify-center space-x-2 py-2.5 px-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl text-xs shadow-md shadow-indigo-600/30 transition-all"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>✨ AI Foto Cover</span>
+            </button>
+          </div>
+
+          {data.coverImageUrl && (
+            <div className="relative rounded-xl overflow-hidden border border-slate-800 aspect-video flex items-center justify-center bg-black">
+              <img src={data.coverImageUrl} alt="Cover Preview" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => handleUpdate('coverImageUrl', undefined)}
+                className="absolute top-2 right-2 px-2 py-1 bg-red-600/80 hover:bg-red-600 text-white rounded text-[11px] font-bold"
+              >
+                Hapus
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* AI Image Modal for Cover */}
+      <AiImageModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        title="Buat Foto Cover Sinematik Realistis"
+        defaultPrompt={
+          data.mainTitle
+            ? `Foto sinematik panggung hajatan pesta sound system di desa malam hari, ${data.mainTitle}`
+            : 'Panggung dangdut hajatan malam hari dengan tumpukan speaker raksasa horeg dan lampu sorot'
+        }
+        onSelectImage={(base64OrUrl) => {
+          handleUpdate('coverImageUrl', base64OrUrl);
+        }}
+      />
     </div>
   );
 };

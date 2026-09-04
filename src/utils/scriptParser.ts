@@ -435,6 +435,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
         let subtitle = '';
         let badgeText = 'KISAH NYATA • PART 1';
         let callToAction = 'Geser ke kanan untuk membaca ➔';
+        let coverImageUrl: string | undefined = undefined;
 
         const rawLines = chunk.lines.map(l => l.trim()).filter(Boolean);
         for (const l of rawLines) {
@@ -446,6 +447,9 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
             badgeText = l.replace(/^\[(?:BADGE|KATEGORI)\]\s*:\s*/i, '').trim();
           } else if (/^\[CTA\]|^\[ACTION\]/i.test(l)) {
             callToAction = l.replace(/^\[(?:CTA|ACTION)\]\s*:\s*/i, '').trim();
+          } else if (/^\[(?:PROMPT_IMAGE|PROMPT_GAMBAR|GAMBAR|FOTO|IMAGE)\]/i.test(l)) {
+            const p = l.replace(/^\[(?:PROMPT_IMAGE|PROMPT_GAMBAR|GAMBAR|FOTO|IMAGE)\]\s*:\s*/i, '').trim();
+            coverImageUrl = getAiImageDirectUrl(p);
           } else if (!mainTitle) {
             mainTitle = l;
           } else if (!subtitle) {
@@ -460,6 +464,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
         if (subtitle) slide.titleCard.subtitle = subtitle;
         if (badgeText) slide.titleCard.badgeText = badgeText;
         if (callToAction) slide.titleCard.callToAction = callToAction;
+        if (coverImageUrl) slide.titleCard.coverImageUrl = coverImageUrl;
       } else if (chunk.platform === 'transition-card') {
         let timeSkipTitle = '3 HARI KEMUDIAN...';
         let timeBadge = `Pukul ${currentTime} WIB`;

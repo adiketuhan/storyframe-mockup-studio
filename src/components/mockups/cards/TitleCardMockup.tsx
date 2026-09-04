@@ -28,18 +28,20 @@ export const TitleCardMockup: React.FC<TitleCardMockupProps> = ({ data, onUpdate
     >
       {/* Background Cover Image if provided */}
       {data.coverImageUrl && (
-        <div className="absolute inset-0 z-0 opacity-25">
+        <div className="absolute inset-0 z-0">
           <img
             src={data.coverImageUrl}
             alt="Cover Background"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover scale-105 filter brightness-75 contrast-110"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-transparent to-slate-950/90" />
         </div>
       )}
 
       {/* Decorative Glow Orb */}
-      <div className="absolute -top-24 -right-24 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-24 -right-24 w-72 h-72 bg-indigo-500/25 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-purple-500/25 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Section: Category Badge */}
       <div className="relative z-10 flex justify-center">
