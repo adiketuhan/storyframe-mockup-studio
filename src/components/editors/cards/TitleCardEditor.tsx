@@ -98,21 +98,23 @@ export const TitleCardEditor: React.FC = () => {
           <span>Tema Visual & Background Cover</span>
         </h3>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {[
+            { id: 'clean_photo', name: 'Polosan / Foto Murni' },
             { id: 'cinematic_dark', name: 'Sinematik Gelap' },
             { id: 'horror_red', name: 'Misteri Horor Merah' },
             { id: 'viral_purple', name: 'Viral Ungu Modern' },
             { id: 'midnight_blue', name: 'Midnight Biru Tua' },
+            { id: 'solid_black', name: 'Hitam Polos' },
           ].map((theme) => (
             <button
               key={theme.id}
               type="button"
               onClick={() => handleUpdate('themeStyle', theme.id)}
-              className={`py-2 px-2.5 rounded-xl text-xs font-semibold text-center transition-all ${
+              className={`py-2 px-2 rounded-xl text-xs font-semibold text-center border transition-all ${
                 data.themeStyle === theme.id
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-indigo-600 text-white border-indigo-400 shadow-md shadow-indigo-600/30'
+                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-800/60'
               }`}
             >
               {theme.name}

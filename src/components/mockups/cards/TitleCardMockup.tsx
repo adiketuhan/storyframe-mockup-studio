@@ -8,8 +8,14 @@ interface TitleCardMockupProps {
 }
 
 export const TitleCardMockup: React.FC<TitleCardMockupProps> = ({ data, onUpdate }) => {
+  const isClean = data.themeStyle === 'clean_photo' || data.themeStyle === 'solid_black';
+
   const getThemeBg = () => {
     switch (data.themeStyle) {
+      case 'clean_photo':
+        return 'from-black/60 via-transparent to-black/80';
+      case 'solid_black':
+        return 'from-black to-black';
       case 'horror_red':
         return 'from-red-950 via-black to-slate-950';
       case 'viral_purple':
@@ -24,7 +30,7 @@ export const TitleCardMockup: React.FC<TitleCardMockupProps> = ({ data, onUpdate
 
   return (
     <div
-      className={`w-full h-full flex flex-col justify-between p-6 sm:p-8 bg-gradient-to-b ${getThemeBg()} text-white relative overflow-hidden select-none`}
+      className={`w-full h-full flex flex-col justify-between p-6 sm:p-8 ${data.coverImageUrl ? 'bg-black' : `bg-gradient-to-b ${getThemeBg()}`} text-white relative overflow-hidden select-none`}
     >
       {/* Background Cover Image if provided */}
       {data.coverImageUrl && (
@@ -32,16 +38,27 @@ export const TitleCardMockup: React.FC<TitleCardMockupProps> = ({ data, onUpdate
           <img
             src={data.coverImageUrl}
             alt="Cover Background"
-            className="w-full h-full object-cover scale-105 filter brightness-75 contrast-110"
+            className={`w-full h-full object-cover scale-105 ${data.themeStyle === 'clean_photo' ? 'brightness-95' : 'brightness-75 contrast-110'}`}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/40" />
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-transparent to-slate-950/90" />
+          {data.themeStyle === 'clean_photo' ? (
+            /* Subtle minimal vignette so uploaded photo stays 100% natural */
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/60" />
+          ) : (
+            <>
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/40" />
+              <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-transparent to-slate-950/90" />
+            </>
+          )}
         </div>
       )}
 
-      {/* Decorative Glow Orb */}
-      <div className="absolute -top-24 -right-24 w-72 h-72 bg-indigo-500/25 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-purple-500/25 rounded-full blur-3xl pointer-events-none" />
+      {/* Decorative Glow Orb (only shown if not in clean/photo mode) */}
+      {!isClean && !data.coverImageUrl && (
+        <>
+          <div className="absolute -top-24 -right-24 w-72 h-72 bg-indigo-500/25 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-purple-500/25 rounded-full blur-3xl pointer-events-none" />
+        </>
+      )}
 
       {/* Top Section: Category Badge */}
       <div className="relative z-10 flex justify-center">

@@ -100,7 +100,7 @@ export interface TitleCardData {
   subtitle: string; // e.g. "Kisah nyata pesanan sound hajatan yang mendadak penuh misteri..."
   badgeText: string; // e.g. "KISAH NYATA • PART 1"
   callToAction: string; // e.g. "Geser ke kanan untuk membaca ➔"
-  themeStyle: 'cinematic_dark' | 'horror_red' | 'viral_purple' | 'midnight_blue';
+  themeStyle: 'clean_photo' | 'cinematic_dark' | 'horror_red' | 'viral_purple' | 'midnight_blue' | 'solid_black';
   coverImageUrl?: string;
 }
 
