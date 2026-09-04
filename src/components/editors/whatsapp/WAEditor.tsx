@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStory } from '../../../context/StoryContext';
 import type { WAMessage, WAMessageType, WAMessageStatus } from '../../../types/story';
-import { Plus, Trash2, ArrowUp, ArrowDown, Mic, Ban, Image as ImageIcon, Upload, ShieldAlert, Lock } from 'lucide-react';
+import { Plus, Trash2, ArrowUp, ArrowDown, Mic, Ban, Image as ImageIcon, Upload, ShieldAlert, Lock, Sparkles } from 'lucide-react';
 import { fileToBase64, PRESET_MEDIA } from '../../../utils/imageUtils';
 import { CharacterQuickPicker } from '../../characters/CharacterQuickPicker';
+import { AiImageModal } from '../../common/AiImageModal';
 
 export const WAEditor: React.FC = () => {
   const { activeSlide, updateActiveSlide, characters } = useStory();
   const { whatsapp } = activeSlide;
+  const [aiModalTargetIndex, setAiModalTargetIndex] = useState<number | null>(null);
 
   const handleUpdateHeader = (field: string, value: any) => {
     updateActiveSlide(slide => ({
@@ -470,10 +472,12 @@ export const WAEditor: React.FC = () => {
                         <ImageIcon className="w-5 h-5" />
                       </div>
                     )}
+                    
+                    {/* Upload button */}
                     <label className="flex-1 cursor-pointer">
                       <div className="py-1.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs text-slate-300 font-medium flex items-center justify-center space-x-1.5">
                         <Upload className="w-3.5 h-3.5" />
-                        <span>Upload Gambar Lampiran</span>
+                        <span>Upload File</span>
                       </div>
                       <input
                         type="file"
@@ -482,6 +486,16 @@ export const WAEditor: React.FC = () => {
                         className="hidden"
                       />
                     </label>
+
+                    {/* AI Generator button */}
+                    <button
+                      type="button"
+                      onClick={() => setAiModalTargetIndex(index)}
+                      className="py-1.5 px-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 shadow-md shadow-indigo-600/30 transition-all"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>✨ AI Foto</span>
+                    </button>
                   </div>
                   <input
                     type="text"
@@ -512,13 +526,13 @@ export const WAEditor: React.FC = () => {
                       type="text"
                       value={msg.time}
                       onChange={(e) => updateMessage(index, { time: e.target.value })}
-                      className="w-20 px-2 py-0.5 bg-slate-900 border border-slate-800 rounded text-xs text-slate-300"
+                      className="w-16 px-2 py-0.5 bg-slate-900 border border-slate-800 rounded text-xs text-slate-200"
                     />
                   </div>
 
                   {msg.sender === 'me' && (
-                    <div className="flex items-center space-x-1 text-xs">
-                      <span className="text-slate-500">Status:</span>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-xs text-slate-500">Status:</span>
                       <select
                         value={msg.status}
                         onChange={(e) => updateMessage(index, { status: e.target.value as WAMessageStatus })}
@@ -536,6 +550,23 @@ export const WAEditor: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* AI Image Generator Modal */}
+      <AiImageModal
+        isOpen={aiModalTargetIndex !== null}
+        onClose={() => setAiModalTargetIndex(null)}
+        title="Buat Foto Lampiran Chat WhatsApp (Realistis)"
+        defaultPrompt={
+          aiModalTargetIndex !== null && whatsapp.messages[aiModalTargetIndex]?.text
+            ? whatsapp.messages[aiModalTargetIndex].text
+            : 'Truk pickup muat sound system horeg di jalanan desa malam hari'
+        }
+        onSelectImage={(base64OrUrl) => {
+          if (aiModalTargetIndex !== null) {
+            updateMessage(aiModalTargetIndex, { mediaUrl: base64OrUrl, type: 'image' });
+          }
+        }}
+      />
     </div>
   );
 };

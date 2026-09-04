@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStory } from '../../../context/StoryContext';
 import { CharacterQuickPicker } from '../../characters/CharacterQuickPicker';
-import { Palette, Type, Image as ImageIcon, Upload } from 'lucide-react';
+import { Palette, Type, Image as ImageIcon, Upload, Sparkles } from 'lucide-react';
 import type { WhatsAppStatusData } from '../../../types/story';
+import { AiImageModal } from '../../common/AiImageModal';
 
 const BG_COLOR_PRESETS = [
   { name: 'Hijau WA', value: '#075E54' },
@@ -15,6 +16,7 @@ const BG_COLOR_PRESETS = [
 
 export const WhatsAppStatusEditor: React.FC = () => {
   const { activeSlide, updateActiveSlide } = useStory();
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const data: WhatsAppStatusData = activeSlide.whatsappStatus || {
     contactName: 'Target Kontak',
     avatar: '',
@@ -62,27 +64,27 @@ export const WhatsAppStatusEditor: React.FC = () => {
           <button
             type="button"
             onClick={() => handleUpdate('statusType', 'text')}
-            className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 transition-all ${
+            className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 border transition-all ${
               data.statusType === 'text'
-                ? 'bg-emerald-600 text-white shadow-md'
-                : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-600/30'
+                : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
             }`}
           >
-            <Type className="w-3.5 h-3.5" />
-            <span>Status Teks Warna</span>
+            <Type className="w-4 h-4" />
+            <span>Status Teks Khas WA</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleUpdate('statusType', 'image')}
-            className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 transition-all ${
+            className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 border transition-all ${
               data.statusType === 'image'
-                ? 'bg-emerald-600 text-white shadow-md'
-                : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-600/30'
+                : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
             }`}
           >
-            <ImageIcon className="w-3.5 h-3.5" />
-            <span>Status Foto / Gambar</span>
+            <ImageIcon className="w-4 h-4" />
+            <span>Status Foto / Media</span>
           </button>
         </div>
       </div>
@@ -203,17 +205,35 @@ export const WhatsAppStatusEditor: React.FC = () => {
         ) : (
           <>
             <div className="space-y-2">
-              <label className="block text-xs text-slate-400">Upload Foto Status:</label>
-              <label className="flex items-center justify-center space-x-2 py-3 px-4 border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-2xl cursor-pointer bg-slate-950/60 transition-colors">
-                <Upload className="w-4 h-4 text-emerald-400" />
-                <span className="text-xs font-semibold text-slate-300">Pilih Foto dari Perangkat</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-              </label>
+              <label className="block text-xs text-slate-400">Pilih Foto Status:</label>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <label className="flex items-center justify-center space-x-2 py-2.5 px-3 border border-slate-700 hover:border-slate-500 rounded-xl cursor-pointer bg-slate-950/60 transition-colors">
+                  <Upload className="w-4 h-4 text-slate-300" />
+                  <span className="text-xs font-semibold text-slate-300">Upload dari File</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() => setIsAiModalOpen(true)}
+                  className="flex items-center justify-center space-x-2 py-2.5 px-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl text-xs shadow-md shadow-indigo-600/30 transition-all"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>✨ Buat Foto AI Realistis</span>
+                </button>
+              </div>
+
+              {data.mediaUrl && (
+                <div className="relative rounded-xl overflow-hidden border border-slate-800 aspect-video">
+                  <img src={data.mediaUrl} alt="Status Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
             </div>
 
             <textarea
@@ -226,6 +246,18 @@ export const WhatsAppStatusEditor: React.FC = () => {
           </>
         )}
       </div>
+
+      {/* AI Image Modal */}
+      <AiImageModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        title="Buat Foto Status WhatsApp Realistis"
+        defaultPrompt={data.caption || 'Foto suasana panggung hajatan sound horeg malam hari'}
+        onSelectImage={(base64OrUrl) => {
+          handleUpdate('mediaUrl', base64OrUrl);
+          handleUpdate('statusType', 'image');
+        }}
+      />
     </div>
   );
 };

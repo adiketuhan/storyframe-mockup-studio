@@ -1,5 +1,5 @@
 import type { Slide, PlatformType, WAMessage, Character, TitleCardData, TransitionCardData, WhatsAppStatusData } from '../types/story';
-import { PRESET_AVATARS, PRESET_MEDIA } from './imageUtils';
+import { PRESET_AVATARS, PRESET_MEDIA, getAiImageDirectUrl } from './imageUtils';
 import { incrementTimeString } from './timeUtils';
 
 export interface ParsedStoryResult {
@@ -35,7 +35,8 @@ akhirnya nemu Tukang sound yang humble serta responsip, semoga bisa deal aman sa
 Scene 6 (wa)
 vn
 siap mas, kalau masalah DP bisa kita bicarakan nantinya, yang penting speknya bisa dipahami terlebih dahulu
-oiya itu untuk indoor atau outdoor ya mas?
+[GAMBAR: Truk pickup muat tumpukan sound system horeg di jalan desa malam hari]
+Ini mas armada kami sudah mulai dipacking!
 
 Scene 7 (jeda)
 [TIMESKIP]: 3 HARI MENJELANG H-1...
@@ -84,7 +85,8 @@ Scene 5 (thread)
 Scene 6 (wa)
 vn
 [Pesan penjelasan suara (Voice Note) dan obrolan detail]
-[Pertanyaan penting lanjutan]
+[GAMBAR: deskripsi foto bukti/kejadian nyata secara realistis, misal: foto truk sound system di jalan desa malam hari]
+[Keterangan foto penguat cerita]
 
 Scene 7 (jeda)
 [TIMESKIP]: 3 HARI KEMUDIAN...
@@ -464,7 +466,15 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
         slide.transitionCard.narrationText = narrationLines.join('\n') || 'Situasi semakin tidak terduga di obrolan berikutnya...';
       } else if (chunk.platform === 'whatsapp-status') {
         const bodyText = chunk.lines.map(l => l.trim()).filter(Boolean).join('\n');
-        slide.whatsappStatus.text = bodyText || 'Story WhatsApp terbaru...';
+        // Check if image status
+        const imgMatch = bodyText.match(/^\[(?:GAMBAR|FOTO|IMAGE)\]\s*:\s*(.+)$/im);
+        if (imgMatch) {
+          slide.whatsappStatus.statusType = 'image';
+          slide.whatsappStatus.mediaUrl = getAiImageDirectUrl(imgMatch[1].trim());
+          slide.whatsappStatus.caption = bodyText.replace(/^\[(?:GAMBAR|FOTO|IMAGE)\]\s*:\s*.+$/im, '').trim();
+        } else {
+          slide.whatsappStatus.text = bodyText || 'Story WhatsApp terbaru...';
+        }
         slide.whatsappStatus.timestamp = `${currentTime}`;
         slide.whatsappStatus.contactName = charThem.name;
         slide.whatsappStatus.avatar = charThem.avatar;
@@ -479,8 +489,15 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
 
           let msgType: 'text' | 'voice' | 'image' | 'deleted' | 'system' = 'text';
           let fullText = currentParagraphLines.join('\n').trim();
+          let mediaUrl: string | undefined = undefined;
 
-          if (/^vn\b|^voice note/i.test(fullText)) {
+          if (/^\[(?:GAMBAR|FOTO|IMAGE|CCTV)\]|^foto\b|^gambar\b/i.test(fullText)) {
+            msgType = 'image';
+            const imgMatch = fullText.match(/^\[(?:GAMBAR|FOTO|IMAGE|CCTV)\]\s*:\s*([^\]\n]+)/i);
+            const promptDesc = imgMatch ? imgMatch[1].trim() : fullText.replace(/^(?:foto|gambar)[:\s]*/i, '').trim();
+            mediaUrl = getAiImageDirectUrl(promptDesc || 'Foto kejadian nyata di jalanan');
+            fullText = fullText.replace(/^\[(?:GAMBAR|FOTO|IMAGE|CCTV)\]\s*:\s*[^\]\n]+/i, '').trim();
+          } else if (/^vn\b|^voice note/i.test(fullText)) {
             msgType = 'voice';
             fullText = fullText.replace(/^vn\b|^voice note[:\s]*/i, '').trim() || 'Voice Message';
           } else if (/^\(deleted\)|\(pesan dihapus\)/i.test(fullText)) {
@@ -491,7 +508,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
             fullText = fullText.replace(/^\(system:|\)$|^\[BLOKIR\]:?/gi, '').trim();
           }
 
-          if (fullText) {
+          if (fullText || msgType === 'image') {
             // Incremental realistic dynamic chat time (+1 to +2 min per exchange)
             if (messages.length > 0) {
               msgTime = incrementTimeString(msgTime, Math.random() > 0.4 ? 1 : 2);
@@ -502,6 +519,7 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
               sender: currentSpeaker,
               type: msgType,
               text: fullText,
+              mediaUrl,
               time: msgTime,
               status: 'read',
               voiceDuration: msgType === 'voice' ? '0:14' : undefined,
@@ -569,17 +587,36 @@ export function parseScriptToStory(rawScript: string): ParsedStoryResult {
           sender: m.sender,
           type: m.type === 'voice' ? 'text' : (m.type as any),
           text: m.text,
+          mediaUrl: m.mediaUrl,
           time: m.time,
         }));
       } else if (chunk.platform === 'twitter') {
         const bodyText = chunk.lines.map(l => l.trim()).filter(Boolean).join('\n');
-        slide.twitter.text = bodyText || 'Tweet terbaru...';
+        const imgMatch = bodyText.match(/^\[(?:GAMBAR|FOTO|IMAGE)\]\s*:\s*(.+)$/im);
+        if (imgMatch) {
+          slide.twitter.mediaUrl = getAiImageDirectUrl(imgMatch[1].trim());
+          slide.twitter.text = bodyText.replace(/^\[(?:GAMBAR|FOTO|IMAGE)\]\s*:\s*.+$/im, '').trim();
+        } else {
+          slide.twitter.text = bodyText || 'Tweet terbaru...';
+        }
       } else if (chunk.platform === 'threads') {
         const bodyText = chunk.lines.map(l => l.trim()).filter(Boolean).join('\n');
-        slide.threads.text = bodyText || 'Utas terbaru...';
+        const imgMatch = bodyText.match(/^\[(?:GAMBAR|FOTO|IMAGE)\]\s*:\s*(.+)$/im);
+        if (imgMatch) {
+          slide.threads.mediaUrl = getAiImageDirectUrl(imgMatch[1].trim());
+          slide.threads.text = bodyText.replace(/^\[(?:GAMBAR|FOTO|IMAGE)\]\s*:\s*.+$/im, '').trim();
+        } else {
+          slide.threads.text = bodyText || 'Utas terbaru...';
+        }
       } else if (chunk.platform === 'instagram-feed') {
         const bodyText = chunk.lines.map(l => l.trim()).filter(Boolean).join('\n');
-        slide.instagramFeed.caption = bodyText || 'Caption terbaru...';
+        const imgMatch = bodyText.match(/^\[(?:GAMBAR|FOTO|IMAGE)\]\s*:\s*(.+)$/im);
+        if (imgMatch) {
+          slide.instagramFeed.mediaUrl = getAiImageDirectUrl(imgMatch[1].trim());
+          slide.instagramFeed.caption = bodyText.replace(/^\[(?:GAMBAR|FOTO|IMAGE)\]\s*:\s*.+$/im, '').trim();
+        } else {
+          slide.instagramFeed.caption = bodyText || 'Caption terbaru...';
+        }
       }
 
       slides.push(slide);

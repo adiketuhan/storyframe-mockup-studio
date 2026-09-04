@@ -86,7 +86,7 @@ export const PRESET_MEDIA = {
     </svg>
   `)}`,
   abandonedHouse: `data:image/svg+xml;utf8,${encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 400 300" fill="none">
       <defs>
         <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="#0f172a"/>
@@ -127,3 +127,130 @@ export const PRESET_MEDIA = {
     </svg>
   `)}`,
 };
+
+export interface DramaAiPreset {
+  id: string;
+  title: string;
+  category: 'cctv' | 'sound_horeg' | 'bukti' | 'misteri' | 'lifestyle';
+  indonesianPrompt: string;
+  englishPrompt: string;
+}
+
+export const REALISTIC_DRAMA_PRESETS: DramaAiPreset[] = [
+  {
+    id: 'cctv_night_figure',
+    title: '📹 Rekaman CCTV Malam Hari',
+    category: 'cctv',
+    indonesianPrompt: 'Rekaman CCTV rumah malam hari melihat sosok mencurigakan di luar pagar',
+    englishPrompt: 'grainy night vision security CCTV surveillance footage, date time timestamp overlay, eerie mysterious silhouette standing outside suburban gate at night, green night tint, photorealistic authentic security camera',
+  },
+  {
+    id: 'horeg_truck_village',
+    title: '🔊 Truk Sound Horeg di Desa',
+    category: 'sound_horeg',
+    indonesianPrompt: 'Truk pickup membawa tumpukan speaker sound system besar di jalanan desa Jawa malam hari',
+    englishPrompt: 'candid mobile phone photo, Indonesian pickup truck carrying massive wall of sound system speakers on rural village asphalt road at night, colorful LED stage strobe lights, authentic Indonesian village festival atmosphere, photorealistic documentary photography, unedited',
+  },
+  {
+    id: 'horeg_stage_party',
+    title: '🎪 Panggung Hajatan Horeg',
+    category: 'sound_horeg',
+    indonesianPrompt: 'Panggung dangdut hajatan malam hari dengan tumpukan speaker raksasa horeg dan lampu sorot',
+    englishPrompt: 'authentic smartphone photo of Indonesian village wedding celebration stage, giant wall of subwoofers sound system, outdoor tarpaulin canopy, dazzling stage floodlights, night crowd, photorealistic snapshot',
+  },
+  {
+    id: 'atm_transfer_receipt',
+    title: '💸 Bukti Transfer Bank / Kuitansi',
+    category: 'bukti',
+    indonesianPrompt: 'Struk bukti transfer ATM atau kuitansi pembayaran di atas meja kayu',
+    englishPrompt: 'close-up smartphone photo of printed paper ATM bank transfer receipt lying on dark wooden table, realistic paper texture, natural indoor daylight, sharp focus, photorealistic',
+  },
+  {
+    id: 'broken_door_lock',
+    title: '🚪 Pintu Rusak Dicongkel',
+    category: 'misteri',
+    indonesianPrompt: 'Kunci pintu kayu rumah rusak bekas dicongkel paksa dari luar',
+    englishPrompt: 'candid mobile phone photo of damaged wooden house door latch, forced entry pry marks, scratched metal lock, authentic Indonesian house doorway, dramatic lighting, photorealistic crime evidence photo',
+  },
+  {
+    id: 'flat_tire_highway',
+    title: '🚗 Ban Mobil Pecah di Jalan Tol',
+    category: 'misteri',
+    indonesianPrompt: 'Ban mobil pecah kempes di bahu jalan tol gelap malam hari',
+    englishPrompt: 'photo taken with phone camera of punctured flat car tire on emergency lane of highway at night, hazard lights blinking on wet asphalt, realistic night ambient lighting, documentary style photo',
+  },
+  {
+    id: 'dark_window_view',
+    title: '🪟 Jendela Kamar Gelap dari Luar',
+    category: 'misteri',
+    indonesianPrompt: 'Jendela kamar lantai dua rumah gelap dilihat dari halaman belakang malam hari',
+    englishPrompt: 'candid phone photo looking up at second floor dark bedroom window of house at night, eerie curtain crack, dim moonlight, realistic handheld camera photograph',
+  },
+  {
+    id: 'spooky_villa_gate',
+    title: '🏚️ Gerbang Villa Terbengkalai',
+    category: 'misteri',
+    indonesianPrompt: 'Gerbang besi berkarat dan halaman villa tua berkabut di pegunungan',
+    englishPrompt: 'authentic smartphone camera photo of rusted iron gate in front of overgrown hillside villa in Puncak Indonesia, misty evening fog, tall pine trees, photorealistic eerie atmosphere',
+  },
+  {
+    id: 'spilled_coffee_table',
+    title: '☕ Kopi Tumpah & Kunci di Meja Warkop',
+    category: 'lifestyle',
+    indonesianPrompt: 'Gelas kopi hitam tumpah dan kunci motor di meja kayu warkop Indonesia',
+    englishPrompt: 'candid snapshot of spilled black coffee cup on rustic wooden warung warkop table, motorcycle key, authentic Indonesian roadside cafe, natural ambient light, photorealistic',
+  },
+];
+
+/**
+ * Enhance Indonesian or casual prompts into ultra-photorealistic English photography prompts
+ */
+export function enhancePromptForPhotorealism(userPrompt: string): string {
+  const clean = userPrompt.trim();
+  if (!clean) return 'candid mobile phone camera photograph, authentic real life setting, 8k resolution, unedited, photorealistic';
+
+  // Check if matching preset
+  const matchedPreset = REALISTIC_DRAMA_PRESETS.find(p => clean.toLowerCase().includes(p.indonesianPrompt.toLowerCase()) || clean.toLowerCase().includes(p.title.toLowerCase()));
+  if (matchedPreset) {
+    return `${matchedPreset.englishPrompt}, shot on iPhone 15, unedited natural photo, hyperrealistic, no cgi, no 3d render`;
+  }
+
+  // Indonesian key concept translations
+  let enhanced = clean;
+  enhanced = enhanced.replace(/sound\s*horeg/gi, 'massive Indonesian wall of sound system speakers');
+  enhanced = enhanced.replace(/cctv/gi, 'security surveillance CCTV camera footage with timestamp');
+  enhanced = enhanced.replace(/truk/gi, 'Indonesian pickup truck');
+  enhanced = enhanced.replace(/kuitansi|struk|transfer/gi, 'bank transfer printed paper receipt on table');
+  enhanced = enhanced.replace(/pintu rusak|dibobol/gi, 'damaged broken wooden door lock forced entry');
+  enhanced = enhanced.replace(/malam hari/gi, 'at dark night with realistic ambient lighting');
+  enhanced = enhanced.replace(/villa/gi, 'hillside villa house');
+  enhanced = enhanced.replace(/ban bocor|ban pecah/gi, 'punctured flat tire on roadside');
+
+  return `candid authentic mobile phone camera photograph of ${enhanced}, realistic natural lighting, real world documentary photography style, sharp focus, 35mm lens, authentic Indonesian atmosphere, unedited, hyperrealistic, high resolution photograph, no CGI, no 3D render, no cartoon, no AI distortion`;
+}
+
+/**
+ * Generate a direct Pollinations Flux URL for instant preview
+ */
+export function getAiImageDirectUrl(prompt: string, seed?: number): string {
+  const enhanced = enhancePromptForPhotorealism(prompt);
+  const randomSeed = seed || Math.floor(Math.random() * 999999);
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=768&nologo=true&seed=${randomSeed}&model=flux`;
+}
+
+/**
+ * Fetch and convert an AI generated image to Base64 for permanent CORS-free canvas export
+ */
+export async function generateRealisticAiImageBase64(prompt: string): Promise<string> {
+  const url = getAiImageDirectUrl(prompt);
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch AI image');
+    const blob = await response.blob();
+    return await fileToBase64(blob);
+  } catch (err) {
+    console.warn('Direct fetch to Base64 failed, returning direct URL fallback:', err);
+    return url;
+  }
+}
+
