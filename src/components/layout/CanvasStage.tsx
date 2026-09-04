@@ -1,4 +1,4 @@
-import { forwardRef, useState } from 'react';
+import { forwardRef, useState, useEffect } from 'react';
 import { useStory } from '../../context/StoryContext';
 import { PhoneStatusBar } from '../mockups/common/PhoneStatusBar';
 import { IncomingNotification } from '../mockups/common/IncomingNotification';
@@ -9,7 +9,7 @@ import { TwitterMockup } from '../mockups/twitter/TwitterMockup';
 import { InstagramFeedMockup } from '../mockups/instagram-feed/InstagramFeedMockup';
 import { ThreadsMockup } from '../mockups/threads/ThreadsMockup';
 import { downloadSlidePng, batchExportZip, captureSlideElement } from '../../utils/exportUtils';
-import { Download, FileArchive, Loader2, Plus, Mic, ShieldAlert, Sparkles, HelpCircle } from 'lucide-react';
+import { Download, FileArchive, Loader2, Plus, Mic, ShieldAlert, Sparkles, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { WAMessage, IGDMMessage } from '../../types/story';
 
 interface CanvasStageProps {
@@ -23,6 +23,43 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
   const [showTips, setShowTips] = useState<boolean>(false);
 
   if (!activeSlide) return null;
+
+  const handlePrevSlide = () => {
+    if (currentSlideIndex > 0) {
+      setActiveSlideId(slides[currentSlideIndex - 1].id);
+    }
+  };
+
+  const handleNextSlide = () => {
+    if (currentSlideIndex < slides.length - 1) {
+      setActiveSlideId(slides[currentSlideIndex + 1].id);
+    }
+  };
+
+  // Keyboard Navigation: Press Left / Right arrow keys to switch slides
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePrevSlide();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNextSlide();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentSlideIndex, slides]);
 
   // Real-time synchronization between Status Bar Time & Chat Message Time
   const handleUpdateTime = (newTime: string) => {
@@ -349,49 +386,74 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(({ scale
       {showTips && (
         <div className="w-full max-w-[420px] mb-2.5 p-3 rounded-2xl bg-indigo-950/70 border border-indigo-800/80 text-xs text-indigo-200 space-y-1.5 animate-fade-in">
           <p className="font-bold text-slate-100 flex items-center space-x-1">
-            <span>💡 Tips Mudah untuk Pemula:</span>
+            <span>💡 Tips Navigasi & Edit Cepat:</span>
           </p>
           <ul className="list-disc list-inside space-y-1 text-[11px] text-indigo-200/90">
+            <li>Gunakan <strong>tombol panah bulat di samping layar HP</strong> (atau tombol panah <strong>← / →</strong> di keyboard) untuk gonta-ganti slide dengan cepat.</li>
             <li><strong>Klik langsung teks di layar HP</strong> (jam atas, nama kontak, pesan) untuk mengubahnya seketika.</li>
-            <li>Jam di status bar atas <strong>otomatis sinkron</strong> dengan jam balon chat!</li>
-            <li>Gunakan tombol <strong>+ Kiri (Lawan)</strong> atau <strong>+ Kanan (Saya)</strong> di bawah HP untuk menambah balon chat secara instan.</li>
+            <li>Jam di status bar atas <strong>otomatis sinkron</strong> dengan jam balon chat.</li>
             <li>Klik tombol hijau <strong>Unduh Slide Ini (PNG)</strong> jika gambar sudah selesai.</li>
           </ul>
         </div>
       )}
 
-      {/* 100% Clean Rectangular Canvas (Zero rounded corners, zero outer white gap for pixel-perfect export) */}
-      <div
-        ref={ref}
-        id="storyframe-export-canvas"
-        className="relative w-full max-w-[420px] aspect-[3/4] bg-black rounded-none shadow-2xl overflow-hidden border-0 flex flex-col transition-all select-none"
-        style={{
-          transform: scale !== 1 ? `scale(${scale})` : undefined,
-          transformOrigin: 'top center',
-          borderRadius: 0,
-        }}
-      >
-        {/* Phone Status Bar (Synchronized with Chat Time) */}
-        <PhoneStatusBar
-          config={activeSlide.statusBar}
-          themeMode={activeSlide.themeMode}
-          isDarkPlatform={activeSlide.platform === 'twitter' || activeSlide.platform === 'threads' ? activeSlide.themeMode === 'dark' : undefined}
-          onUpdateTime={handleUpdateTime}
-        />
+      {/* Relative Mockup Stage with Floating Side Navigation Arrows */}
+      <div className="relative w-full max-w-[420px] flex items-center justify-center">
+        {/* Floating Left Arrow (Previous Slide) */}
+        <button
+          type="button"
+          disabled={currentSlideIndex === 0}
+          onClick={handlePrevSlide}
+          className="absolute -left-4 sm:-left-12 lg:-left-16 top-1/2 -translate-y-1/2 z-40 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-900/95 hover:bg-indigo-600 border border-slate-700/90 hover:border-indigo-500 text-slate-200 hover:text-white shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-20 disabled:pointer-events-none group"
+          title="Slide Sebelumnya (Atau tekan tombol panah kiri keyboard ←)"
+        >
+          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 group-hover:-translate-x-0.5 transition-transform" />
+        </button>
 
-        {/* Suspense Incoming Notification Overlay */}
-        <IncomingNotification
-          config={activeSlide.notification}
-          onInlineEdit={handleInlineNotificationEdit}
-        />
+        {/* 100% Clean Rectangular Canvas (Zero rounded corners, zero outer white gap for pixel-perfect export) */}
+        <div
+          ref={ref}
+          id="storyframe-export-canvas"
+          className="relative w-full aspect-[3/4] bg-black rounded-none shadow-2xl overflow-hidden border-0 flex flex-col transition-all select-none"
+          style={{
+            transform: scale !== 1 ? `scale(${scale})` : undefined,
+            transformOrigin: 'top center',
+            borderRadius: 0,
+          }}
+        >
+          {/* Phone Status Bar (Synchronized with Chat Time) */}
+          <PhoneStatusBar
+            config={activeSlide.statusBar}
+            themeMode={activeSlide.themeMode}
+            isDarkPlatform={activeSlide.platform === 'twitter' || activeSlide.platform === 'threads' ? activeSlide.themeMode === 'dark' : undefined}
+            onUpdateTime={handleUpdateTime}
+          />
 
-        {/* Active Mockup Screen Content */}
-        <div className="flex-1 min-h-0 relative overflow-hidden flex flex-col">
-          {renderMockup()}
+          {/* Suspense Incoming Notification Overlay */}
+          <IncomingNotification
+            config={activeSlide.notification}
+            onInlineEdit={handleInlineNotificationEdit}
+          />
+
+          {/* Active Mockup Screen Content */}
+          <div className="flex-1 min-h-0 relative overflow-hidden flex flex-col">
+            {renderMockup()}
+          </div>
+
+          {/* Home Bar Indicator */}
+          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/40 rounded-full pointer-events-none z-30" />
         </div>
 
-        {/* Home Bar Indicator */}
-        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/40 rounded-full pointer-events-none z-30" />
+        {/* Floating Right Arrow (Next Slide) */}
+        <button
+          type="button"
+          disabled={currentSlideIndex === slides.length - 1}
+          onClick={handleNextSlide}
+          className="absolute -right-4 sm:-right-12 lg:-right-16 top-1/2 -translate-y-1/2 z-40 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-900/95 hover:bg-indigo-600 border border-slate-700/90 hover:border-indigo-500 text-slate-200 hover:text-white shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-20 disabled:pointer-events-none group"
+          title="Slide Berikutnya (Atau tekan tombol panah kanan keyboard →)"
+        >
+          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-0.5 transition-transform" />
+        </button>
       </div>
 
       {/* External Page Number & Content Title Bar (OUTSIDE the mockup image) */}
