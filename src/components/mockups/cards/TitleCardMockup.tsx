@@ -38,11 +38,11 @@ export const TitleCardMockup: React.FC<TitleCardMockupProps> = ({ data, onUpdate
           <img
             src={data.coverImageUrl}
             alt="Cover Background"
-            className={`w-full h-full object-cover scale-105 ${data.themeStyle === 'clean_photo' ? 'brightness-95' : 'brightness-75 contrast-110'}`}
+            className={`w-full h-full object-cover ${data.themeStyle === 'clean_photo' ? 'brightness-100 contrast-100 scale-100' : 'brightness-75 contrast-110 scale-105'}`}
           />
           {data.themeStyle === 'clean_photo' ? (
-            /* Subtle minimal vignette so uploaded photo stays 100% natural */
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/60" />
+            /* Foto murni 100% tanpa shadow / gradient hitam */
+            null
           ) : (
             <>
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/40" />
@@ -81,7 +81,11 @@ export const TitleCardMockup: React.FC<TitleCardMockupProps> = ({ data, onUpdate
           contentEditable={!!onUpdate}
           suppressContentEditableWarning
           onBlur={(e) => onUpdate && onUpdate('mainTitle', e.currentTarget.textContent?.trim() || data.mainTitle)}
-          className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-300 drop-shadow-lg hover:opacity-90 transition-opacity"
+          className={`text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight transition-opacity hover:opacity-90 ${
+            data.themeStyle === 'clean_photo'
+              ? 'text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.95)]'
+              : 'text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-300 drop-shadow-lg'
+          }`}
         >
           {data.mainTitle || 'Judul Cerita Viral'}
         </h1>
@@ -90,7 +94,11 @@ export const TitleCardMockup: React.FC<TitleCardMockupProps> = ({ data, onUpdate
           contentEditable={!!onUpdate}
           suppressContentEditableWarning
           onBlur={(e) => onUpdate && onUpdate('subtitle', e.currentTarget.textContent?.trim() || data.subtitle)}
-          className="text-xs sm:text-sm text-slate-300/90 leading-relaxed font-normal max-w-xs mx-auto hover:opacity-90"
+          className={`text-xs sm:text-sm leading-relaxed font-normal max-w-xs mx-auto hover:opacity-90 ${
+            data.themeStyle === 'clean_photo'
+              ? 'text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] font-medium'
+              : 'text-slate-300/90'
+          }`}
         >
           {data.subtitle || 'Kisah nyata yang mendadak viral dan penuh drama...'}
         </p>

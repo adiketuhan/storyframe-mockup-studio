@@ -14,7 +14,7 @@ const BG_COLOR_PRESETS = [
 ];
 
 export const WhatsAppStatusEditor: React.FC = () => {
-  const { activeSlide, updateActiveSlide } = useStory();
+  const { activeSlide, updateActiveSlide, characters } = useStory();
   const data: WhatsAppStatusData = activeSlide.whatsappStatus || {
     contactName: 'Target Kontak',
     avatar: '',
@@ -37,6 +37,18 @@ export const WhatsAppStatusEditor: React.FC = () => {
     }));
   };
 
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          handleUpdate('avatar', event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const reader = new FileReader();
@@ -53,7 +65,18 @@ export const WhatsAppStatusEditor: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Quick Character Cast Selector */}
-      <CharacterQuickPicker />
+      <CharacterQuickPicker
+        label="Pilih Pengirim Status dari Pemeran:"
+        selectedCharacterId={data.characterId}
+        onSelect={(charId) => {
+          const char = characters.find(c => c.id === charId);
+          if (char) {
+            handleUpdate('contactName', char.name);
+            handleUpdate('avatar', char.avatar);
+            handleUpdate('characterId', char.id);
+          }
+        }}
+      />
 
       {/* Status Mode Toggle: Teks vs Foto */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
@@ -87,7 +110,7 @@ export const WhatsAppStatusEditor: React.FC = () => {
         </div>
       </div>
 
-      {/* Header Info: Nama & Jam Tayang */}
+      {/* Header Info: Nama & Jam Tayang & Avatar */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
         <h3 className="font-bold text-xs text-slate-300">Pengirim & Waktu Status</h3>
         <div className="grid grid-cols-2 gap-3">
@@ -113,8 +136,35 @@ export const WhatsAppStatusEditor: React.FC = () => {
           </div>
         </div>
 
-        {/* Progress Bar Segments */}
-        <div className="grid grid-cols-2 gap-3 pt-1">
+        {/* Contact Avatar Upload */}
+        <div>
+          <label className="block text-xs text-slate-400 mb-1.5">Foto Profil Pengirim</label>
+          <div className="flex items-center space-x-2">
+            <img
+              src={data.avatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%23475569"/></svg>'}
+              alt="Avatar"
+              className="w-10 h-10 rounded-full object-cover border border-slate-700 bg-slate-800"
+            />
+            <label className="flex-1 cursor-pointer">
+              <div className="py-1.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs text-slate-300 font-medium flex items-center justify-center space-x-1.5">
+                <Upload className="w-3.5 h-3.5" />
+                <span>Ganti Foto Profil</span>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress Bar Segments */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <h3 className="font-bold text-xs text-slate-300">Garis Progress Status WA</h3>
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs text-slate-400 mb-1">Total Garis Status</label>
             <input

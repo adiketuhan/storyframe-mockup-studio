@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useStory } from '../../context/StoryContext';
 import type { PlatformType } from '../../types/story';
-import { Plus, Copy, Trash2, ChevronLeft, ChevronRight, MessageSquare, ChevronDown, FileCode } from 'lucide-react';
+import { Plus, Copy, Trash2, ChevronLeft, ChevronRight, MessageSquare, ChevronDown, FileCode, GripVertical } from 'lucide-react';
 import { TwitterIcon, InstagramIcon, WhatsAppIcon } from '../common/BrandIcons';
 import { ScriptParserModal } from '../parser/ScriptParserModal';
 
@@ -19,6 +19,8 @@ export const SlideTimeline: React.FC = () => {
 
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [showScriptModal, setShowScriptModal] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const getPlatformIcon = (platform: PlatformType) => {
     switch (platform) {
@@ -32,6 +34,12 @@ export const SlideTimeline: React.FC = () => {
         return <div className="p-1 rounded-md bg-gradient-to-tr from-yellow-500 via-rose-500 to-purple-600 text-white"><InstagramIcon className="w-3.5 h-3.5" /></div>;
       case 'threads':
         return <div className="p-1 rounded-md bg-[#101010] border border-neutral-700 text-white text-xs font-bold px-1.5">@</div>;
+      case 'title-card':
+        return <div className="p-1 rounded-md bg-gradient-to-r from-amber-600 to-rose-600 text-white text-xs font-bold px-1.5">Cover</div>;
+      case 'transition-card':
+        return <div className="p-1 rounded-md bg-indigo-900 border border-indigo-700 text-indigo-300 text-xs font-bold px-1.5">Jeda</div>;
+      case 'whatsapp-status':
+        return <div className="p-1 rounded-md bg-emerald-700 text-white"><WhatsAppIcon className="w-3.5 h-3.5" /></div>;
     }
   };
 
@@ -47,7 +55,7 @@ export const SlideTimeline: React.FC = () => {
         <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-900/90 border border-slate-800 p-3 rounded-2xl">
           <div>
             <h3 className="font-bold text-sm text-slate-200">Alur Cerita Bergambar ({slides.length} Slide)</h3>
-            <p className="text-xs text-slate-400">Kelola urutan, duplikasi, dan format adegan cerita</p>
+            <p className="text-xs text-slate-400">Tarik & geser (drag & drop) untuk mengurutkan posisi halaman secara manual</p>
           </div>
 
           {/* Master Action Buttons */}
@@ -90,11 +98,33 @@ export const SlideTimeline: React.FC = () => {
                 <div className="absolute right-0 top-full mt-1.5 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl py-1 z-30 animate-fade-in">
                   <button
                     type="button"
+                    onClick={() => handleAddPlatformSlide('title-card')}
+                    className="w-full px-3 py-2 text-left text-xs text-amber-300 font-semibold hover:bg-slate-800 flex items-center space-x-2"
+                  >
+                    <span>🖼️ + Cover Judul</span>
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => handleAddPlatformSlide('whatsapp')}
                     className="w-full px-3 py-2 text-left text-xs text-slate-200 hover:bg-slate-800 flex items-center space-x-2"
                   >
                     <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-400" />
                     <span>+ WhatsApp Chat</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddPlatformSlide('whatsapp-status')}
+                    className="w-full px-3 py-2 text-left text-xs text-emerald-400 font-semibold hover:bg-slate-800 flex items-center space-x-2"
+                  >
+                    <WhatsAppIcon className="w-3.5 h-3.5" />
+                    <span>+ Status WhatsApp</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddPlatformSlide('transition-card')}
+                    className="w-full px-3 py-2 text-left text-xs text-indigo-300 hover:bg-slate-800 flex items-center space-x-2"
+                  >
+                    <span>⏳ + Jeda / Transisi</span>
                   </button>
                   <button
                     type="button"
@@ -134,24 +164,63 @@ export const SlideTimeline: React.FC = () => {
           </div>
         </div>
 
-        {/* Slide Thumbnails List */}
+        {/* Slide Thumbnails List with Drag-and-Drop */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           {slides.map((slide, index) => {
             const isActive = slide.id === activeSlideId;
+            const isDragging = draggedIndex === index;
+            const isDragOver = dragOverIndex === index && draggedIndex !== index;
 
             return (
               <div
                 key={slide.id}
+                draggable
+                onDragStart={(e) => {
+                  setDraggedIndex(index);
+                  e.dataTransfer.setData('text/plain', index.toString());
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                  if (dragOverIndex !== index) {
+                    setDragOverIndex(index);
+                  }
+                }}
+                onDragLeave={() => {
+                  if (dragOverIndex === index) {
+                    setDragOverIndex(null);
+                  }
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (draggedIndex !== null && draggedIndex !== index) {
+                    reorderSlides(draggedIndex, index);
+                  }
+                  setDraggedIndex(null);
+                  setDragOverIndex(null);
+                }}
+                onDragEnd={() => {
+                  setDraggedIndex(null);
+                  setDragOverIndex(null);
+                }}
                 onClick={() => setActiveSlideId(slide.id)}
-                className={`relative rounded-2xl p-3.5 border transition-all cursor-pointer select-none ${
-                  isActive
+                className={`relative rounded-2xl p-3.5 border transition-all cursor-grab active:cursor-grabbing select-none ${
+                  isDragging
+                    ? 'opacity-40 border-dashed border-indigo-400 scale-95'
+                    : isDragOver
+                    ? 'border-indigo-400 ring-2 ring-indigo-400/50 bg-indigo-950/60 scale-[1.02]'
+                    : isActive
                     ? 'bg-indigo-950/40 border-indigo-500 ring-2 ring-indigo-500/20 shadow-xl'
                     : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
                 }`}
               >
-                {/* Header Badge */}
+                {/* Header Badge & Drag Handle */}
                 <div className="flex items-center justify-between mb-2.5">
                   <div className="flex items-center space-x-2">
+                    <div className="flex items-center text-slate-500 hover:text-slate-300 cursor-grab" title="Tahan dan geser untuk memindahkan">
+                      <GripVertical className="w-4 h-4" />
+                    </div>
                     <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                       isActive ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'
                     }`}>
@@ -166,7 +235,10 @@ export const SlideTimeline: React.FC = () => {
                         onChange={(e) => updateSlideById(slide.id, { platform: e.target.value as PlatformType })}
                         className="bg-slate-950/80 border border-slate-700/80 rounded-lg px-2 py-0.5 text-xs font-semibold text-slate-200 focus:outline-none focus:border-indigo-500"
                       >
-                        <option value="whatsapp">WhatsApp</option>
+                        <option value="title-card">Cover Judul</option>
+                        <option value="whatsapp">WhatsApp Chat</option>
+                        <option value="whatsapp-status">Status WA</option>
+                        <option value="transition-card">Jeda / Narasi</option>
                         <option value="instagram-feed">Postingan IG Feed</option>
                         <option value="instagram-dm">DM Instagram</option>
                         <option value="twitter">X (Twitter)</option>
@@ -195,7 +267,7 @@ export const SlideTimeline: React.FC = () => {
 
                 {/* Card Bottom Controls */}
                 <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs">
-                  {/* Reorder Left/Right */}
+                  {/* Reorder Left/Right Buttons */}
                   <div className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
                     <button
                       type="button"

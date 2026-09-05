@@ -709,6 +709,16 @@ export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                 characterId: char.id,
               },
             };
+          case 'whatsapp-status':
+            return {
+              ...slide,
+              whatsappStatus: {
+                ...slide.whatsappStatus,
+                contactName: char.name,
+                avatar: char.avatar,
+                characterId: char.id,
+              },
+            };
           case 'instagram-dm':
             return {
               ...slide,
