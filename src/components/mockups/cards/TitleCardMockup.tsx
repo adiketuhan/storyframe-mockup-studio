@@ -97,17 +97,18 @@ export const TitleCardMockup: React.FC<TitleCardMockupProps> = ({ data, onUpdate
       </div>
 
       {/* Bottom Section: Call to Action Swipe Bar */}
-      <div className="relative z-10 pt-4 flex flex-col items-center space-y-2">
-        <div className="px-4 py-2 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md text-xs font-bold text-white flex items-center space-x-2 shadow-xl animate-pulse">
-          <span
-            contentEditable={!!onUpdate}
-            suppressContentEditableWarning
-            onBlur={(e) => onUpdate && onUpdate('callToAction', e.currentTarget.textContent?.trim() || data.callToAction)}
-          >
-            {data.callToAction || 'Geser ke kanan untuk membaca ➔'}
-          </span>
-        </div>
-        <p className="text-[10px] text-slate-500">tokonembahmo.com</p>
+      <div className="relative z-10 pt-4 flex flex-col items-center">
+        {data.callToAction !== '' && (
+          <div className="px-4 py-2 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md text-xs font-bold text-white flex items-center space-x-2 shadow-xl animate-pulse">
+            <span
+              contentEditable={!!onUpdate}
+              suppressContentEditableWarning
+              onBlur={(e) => onUpdate && onUpdate('callToAction', e.currentTarget.textContent?.trim() || data.callToAction)}
+            >
+              {data.callToAction || 'Geser ke kanan untuk membaca ➔'}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
